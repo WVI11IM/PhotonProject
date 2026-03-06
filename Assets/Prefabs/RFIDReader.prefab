@@ -113,6 +113,7 @@ GameObject:
   - component: {fileID: 7273959727286032324}
   - component: {fileID: 1893012859630054196}
   - component: {fileID: 8909445720705122986}
+  - component: {fileID: 6482360145970730168}
   m_Layer: 0
   m_Name: RFIDReader
   m_TagString: Untagged
@@ -149,8 +150,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e4a278b6b4e5994c915370272de4f34, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RFIDReader
-  portName: COM3
+  inventoryManager: {fileID: 6482360145970730168}
   baudRate: 9600
+  reconnectInterval: 2
   rfidDisplayText: {fileID: 8769692272551303186}
 --- !u!114 &8909445720705122986
 MonoBehaviour:
@@ -171,6 +173,18 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 1893012859630054196}
   ForceRemoteRenderTimeframe: 0
+--- !u!114 &6482360145970730168
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1200127729180485959}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d8d61cc1cb93af48a7b076dd920e97c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryManager
 --- !u!1 &1520856068469651460
 GameObject:
   m_ObjectHideFlags: 0

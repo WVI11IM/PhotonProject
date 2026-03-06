@@ -3,14 +3,20 @@ using System;
 using System.Collections;
 using System.IO.Ports;
 using System.Text;
-using UnityEngine;
 using TMPro;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine;
+using System.Management;
+
 
 public class RFIDReader : NetworkBehaviour
 {
+    [Header("Inventory Manager")]
+    [SerializeField] private InventoryManager inventoryManager;
+
     [Header("Serial Settings")]
-    [SerializeField] private string portName = "COM3";
     [SerializeField] private int baudRate = 9600;
+    [SerializeField] private float reconnectInterval = 2f;
 
     [Header("UI")]
     [SerializeField] public TMP_Text rfidDisplayText;
@@ -26,19 +32,45 @@ public class RFIDReader : NetworkBehaviour
         }
     }
 
+    private void TryConnectToRFID()
+    {
+        //Get all serial ports from computer
+        string[] ports = SerialPort.GetPortNames();
+
+        //Checks each port until success
+        foreach (string port in ports)
+        {
+            try
+            {
+                SerialPort testPort = new SerialPort(port, baudRate);
+                testPort.ReadTimeout = 500;
+                testPort.Open();
+
+                sp = testPort;
+                sp.DiscardInBuffer();
+
+                Debug.Log("Port opened: " + port);
+            }
+            catch
+            {
+                //Ignore the ones that fail
+            }
+        }
+    }
+
     void Start()
     {
-        if (!Object.HasStateAuthority) return;
+        TryConnectToRFID();
 
-        sp = new SerialPort(portName, baudRate);
-        sp.Open();
-        sp.ReadTimeout = 1000;
-        sp.DiscardInBuffer();
+        //if (sp != null && sp.IsOpen)
+        //    Debug.Log("RFID reader connected");
+        //else
+        //    Debug.Log("No RFID reader detected");
     }
 
     void Update()
     {
-        if (!Object.HasStateAuthority || sp == null || !sp.IsOpen) return;
+        if (sp == null || !sp.IsOpen) return;
 
         while (sp.BytesToRead > 0)
         { 
@@ -55,17 +87,28 @@ public class RFIDReader : NetworkBehaviour
             {
                 Debug.Log("RFID UID: " + uid);
 
-                if (Object.HasStateAuthority)
-                {
-                    RPC_BroadcastToClients(uid);
-                }
-                    
+                OnUIDScanned(uid);
+                RPC_BroadcastToClients(uid);
+
             }
 
         }
     }
 
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void OnUIDScanned(string uid)
+    {
+        if (inventoryManager == null) return;
+
+        //Testing: puts a random item in the scanned inventory
+        Item newItem = new Item("Item" + UnityEngine.Random.Range(1, 100));
+        inventoryManager.AddItem(uid, newItem);
+
+        var items = inventoryManager.GetItems(uid);
+        string sequence = string.Join(" -> ", items.ConvertAll(i => i.itemName));
+        Debug.Log($"UID {uid} inventory order: {sequence}");
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.All)]
     void RPC_BroadcastToClients(string uid)
     {
         if (rfidDisplayText != null)
