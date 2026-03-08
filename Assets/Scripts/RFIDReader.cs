@@ -5,6 +5,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using System.Management;
+using System.Linq;
 
 public class RFIDReader : MonoBehaviour
 {
@@ -97,7 +98,7 @@ public class RFIDReader : MonoBehaviour
         inventoryManager.AddItem(uid, nextItem);
 
         var items = inventoryManager.GetItems(uid);
-        string sequence = string.Join(" <- ", items.ConvertAll(i => i.itemType.ToString()));
+        string sequence = string.Join(" <- ", items.Select(i => i.itemType.ToString()));
         Debug.Log($"UID {uid} inventory order: {sequence}");
     }
 
