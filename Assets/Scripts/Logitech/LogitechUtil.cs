@@ -7,8 +7,8 @@ namespace Logitech {
 
     public class LogitechUtil : MonoBehaviour {
 
+        #region Singleton Logic
         private static LogitechUtil _instance;
-
         public static LogitechUtil Instance {
             get {
                 if (!_instance) {
@@ -18,12 +18,36 @@ namespace Logitech {
                 return _instance;
             }
         }
+        #endregion
 
-        public static float AxisWheel              => Instance._joyStatus.lX / (float)Int16.MaxValue;
-        public static float AxisPedalAccelerator   => AbsoluteIntToPercent(Instance._joyStatus.lY);
-        public static float AxisPedalBrake         => AbsoluteIntToPercent(Instance._joyStatus.lRz);
-        public static float AxisPedalClutch        => AbsoluteIntToPercent(Instance._joyStatus.rglSlider[0]);
-
+        #region Properties
+        /// <summary>
+        /// Returns the wheel's rotation relative to its physical range of movement (-1.0 to 1.0)
+        /// </summary>
+        public static float WheelAxis               => Instance._joyStatus.lX / (float)Int16.MaxValue;
+        /// <summary>
+        /// Returns the number of revolutions the wheel has made (-1.5 to 1.5)
+        /// </summary>
+        public static float WheelAxisRevolutions    => Instance._joyStatus.lX / (float)Int16.MaxValue / 1.5f; //TODO: Test with wheel, ensure this value is accurate
+        /// <summary>
+        /// Returns the wheel's rotation in degrees (-540.0 to 540.0)
+        /// </summary>
+        public static float WheelAxisDegrees        => Instance._joyStatus.lX / (float)Int16.MaxValue / 540; //TODO: Test with wheel, ensure this value is accurate
+        /// <summary>
+        /// Returns how far the accelerator has been depressed, from 0 (resting position) to 1 (fully pressed).
+        /// </summary>
+        public static float AxisPedalAccelerator    => AbsoluteIntToPercent(Instance._joyStatus.lY);
+        /// <summary>
+        /// Returns how far the brake has been depressed, from 0 (resting position) to 1 (fully pressed).
+        /// </summary>
+        public static float AxisPedalBrake          => AbsoluteIntToPercent(Instance._joyStatus.lRz);
+        /// <summary>
+        /// Returns how far the clutch has been depressed, from 0 (resting position) to 1 (fully pressed).
+        /// </summary>
+        public static float AxisPedalClutch         => AbsoluteIntToPercent(Instance._joyStatus.rglSlider[0]);
+        #endregion
+        
+        // Logitech SDK
         private LogitechGSDK.DIJOYSTATE2ENGINES _joyStatus;
         private LogitechGSDK.LogiControllerPropertiesData _joyProps;
 
