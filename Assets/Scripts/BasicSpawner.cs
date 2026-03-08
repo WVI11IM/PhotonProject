@@ -32,6 +32,7 @@ public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
         if (spawnedPilot == null)
         {
             spawnedPilot = runner.Spawn(pilotPrefab, Vector3.zero, Quaternion.identity, player);
+            
             //TESTING: Engineer is assigned to the pilot on spawn
             var pilotSender = spawnedPilot.GetComponent<PilotItemSender>();
             if (pilotSender != null)

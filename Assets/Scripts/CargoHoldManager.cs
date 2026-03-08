@@ -20,18 +20,18 @@ public class CargoHoldManager : NetworkBehaviour
             RPC_UpdateCargoQueueText(GetCargoQueueText());
 
         }
-        //Else, it gets ejected and lost forever
+        //Else, it gets ejected and lost forever i guess
         else
         {
             AutoEjectItem(itemType);
         }
     }
 
+    //For now it's just a log that tells us which item was ejected
     private void AutoEjectItem(ItemType itemType)
     {
         Debug.Log($"Cargo queue is full!!!\n{itemType} was automatically ejected");
     }
-
 
     //Tries to get the next item from the queue
     public bool TryGetNextItemFromCargoQueue(out ItemType itemType)
@@ -49,7 +49,7 @@ public class CargoHoldManager : NetworkBehaviour
         return true;
     }
 
-
+    //RPC for updating the cargo queue text
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     public void RPC_UpdateCargoQueueText(string newText)
     {

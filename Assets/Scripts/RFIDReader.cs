@@ -1,4 +1,3 @@
-using Fusion;
 using System;
 using System.Collections;
 using System.IO.Ports;
@@ -7,8 +6,7 @@ using TMPro;
 using UnityEngine;
 using System.Management;
 
-
-public class RFIDReader : NetworkBehaviour
+public class RFIDReader : MonoBehaviour
 {
     [Header("Inventory Manager")]
     [SerializeField] private InventoryManager inventoryManager;
@@ -22,14 +20,6 @@ public class RFIDReader : NetworkBehaviour
 
     private SerialPort sp;
     private StringBuilder buffer = new StringBuilder();
-
-    public override void Spawned()
-    {
-        if (rfidDisplayText == null)
-        {
-            rfidDisplayText = GameObject.Find("RFIDText").GetComponent<TMP_Text>();
-        }
-    }
 
     private void TryConnectToRFID()
     {
@@ -84,16 +74,14 @@ public class RFIDReader : NetworkBehaviour
 
             if (!string.IsNullOrEmpty(uid))
             {
-                //Debug.Log("RFID UID: " + uid);
-
                 OnUIDScanned(uid);
-                RPC_BroadcastToClients(uid);
-
+                UpdateUIDText(uid);
             }
 
         }
     }
 
+    //When a card is scanned, analyzes the CargoHoldManager to check if any items can be found
     private void OnUIDScanned(string uid)
     {
         if (inventoryManager == null || cargoHoldManager == null) return;
@@ -104,6 +92,7 @@ public class RFIDReader : NetworkBehaviour
             return;
         }
 
+        //If there's an item on the cargo queue, add it to the inventory of tapped card
         Item nextItem = new Item(nextType);
         inventoryManager.AddItem(uid, nextItem);
 
@@ -112,15 +101,10 @@ public class RFIDReader : NetworkBehaviour
         Debug.Log($"UID {uid} inventory order: {sequence}");
     }
 
-    [Rpc(RpcSources.All, RpcTargets.All)]
-    void RPC_BroadcastToClients(string uid)
-    {
-        UpdateUIDText(uid);
-    }
-
+    //Updates text and shows which card got scanned
     private void UpdateUIDText(string uid)
     {
-        if (rfidDisplayText != null && Object.HasInputAuthority)
+        if (rfidDisplayText != null)
             rfidDisplayText.text += $"Card scanned: {uid}\n";
     }
 

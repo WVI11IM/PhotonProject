@@ -10,7 +10,7 @@ public enum ItemType
     Debris = 3
 }
 
-public class InventoryManager : NetworkBehaviour
+public class InventoryManager : MonoBehaviour
 {
     private Dictionary<string, List<Item>> inventories =
         new Dictionary<string, List<Item>>();
@@ -25,7 +25,7 @@ public class InventoryManager : NetworkBehaviour
         Debug.Log($"UID {uid}: Added {item.itemType} at position {inventories[uid].Count}");
     }
 
-    //Returns the list of items from a UID
+    //Returns the list of items from a specific UID
     public List<Item> GetItems(string uid)
     {
         if (!inventories.ContainsKey(uid))
@@ -34,7 +34,7 @@ public class InventoryManager : NetworkBehaviour
         return inventories[uid];
     }
 
-    //Clears the item list from a UID
+    //Clears the item list from a specific UID
     public void ClearInventory(string uid)
     {
         if (inventories.ContainsKey(uid))
