@@ -12,24 +12,24 @@ public enum ItemType
 
 public class InventoryManager : MonoBehaviour
 {
-    private Dictionary<string, List<Item>> inventories =
-        new Dictionary<string, List<Item>>();
+    private Dictionary<string, Queue<Item>> inventories =
+        new Dictionary<string, Queue<Item>>();
 
     //Add an item to a UID, appending it at the end and preserving the order
     public void AddItem(string uid, Item item)
     {
         if (!inventories.ContainsKey(uid))
-            inventories[uid] = new List<Item>();
+            inventories[uid] = new Queue<Item>();
 
-        inventories[uid].Add(item);
+        inventories[uid].Enqueue(item);
         Debug.Log($"UID {uid}: Added {item.itemType} at position {inventories[uid].Count}");
     }
 
     //Returns the list of items from a specific UID
-    public List<Item> GetItems(string uid)
+    public Queue<Item> GetItems(string uid)
     {
         if (!inventories.ContainsKey(uid))
-            inventories[uid] = new List<Item>();
+            inventories[uid] = new Queue<Item>();
 
         return inventories[uid];
     }
@@ -39,5 +39,11 @@ public class InventoryManager : MonoBehaviour
     {
         if (inventories.ContainsKey(uid))
             inventories[uid].Clear();
+    }
+
+    //Clears the item list from all UIDs
+    public void ClearAllInventories()
+    {
+        inventories.Clear();
     }
 }
