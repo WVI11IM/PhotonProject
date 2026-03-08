@@ -10,6 +10,14 @@ public enum ItemType
     Debris = 3
 }
 
+public enum Sector
+{
+    Armor = 0,
+    Weapon = 1,
+    Tank = 2,
+    Eject = 3
+}
+
 public class InventoryManager : MonoBehaviour
 {
     private Dictionary<string, Queue<Item>> inventories =
@@ -33,6 +41,17 @@ public class InventoryManager : MonoBehaviour
 
         return inventories[uid];
     }
+
+    //Removes item at the front of queue from a specific UID
+    public void DeployItem(string uid)
+    {
+        if (!inventories.ContainsKey(uid))
+            inventories[uid] = new Queue<Item>();
+
+        Item deployedItem = inventories[uid].Dequeue();
+        Debug.Log($"UID {uid}: Deployed {deployedItem.itemType}");
+    }
+    //>>>>>>>>>>>>>>>>ASSOCIATE THIS WITH SECTORS LATER<<<<<<<<<<<<<<<<<<<<<<
 
     //Clears the item list from a specific UID
     public void ClearInventory(string uid)
