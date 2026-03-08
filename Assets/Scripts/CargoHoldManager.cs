@@ -9,6 +9,15 @@ public class CargoHoldManager : NetworkBehaviour
     [SerializeField] private int queueCapacity = 10;
     [SerializeField] private TMPro.TextMeshProUGUI cargoQueueText;
 
+    public override void Spawned()
+    {
+        //Only shows cargo queue text if engineer
+        if (cargoQueueText != null)
+        {
+            cargoQueueText.gameObject.SetActive(Object.HasInputAuthority);
+        }
+    }
+
     //Checks queue capacity for adding an item
     public void TryAddToQueue(ItemType itemType)
     {
@@ -50,7 +59,7 @@ public class CargoHoldManager : NetworkBehaviour
     }
 
     //RPC for updating the cargo queue text
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
     public void RPC_UpdateCargoQueueText(string newText)
     {
         if (cargoQueueText != null)

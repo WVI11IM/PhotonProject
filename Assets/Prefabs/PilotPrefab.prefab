@@ -305,6 +305,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PilotItemSender
   _EngineerObject: {fileID: 0}
+  sendItemButtons:
+  - {fileID: 6702336815871305777}
+  - {fileID: 977426174061999411}
+  - {fileID: 2023367574883510871}
+  - {fileID: 8041714961502920125}
 --- !u!1 &1461209213538709431
 GameObject:
   m_ObjectHideFlags: 0

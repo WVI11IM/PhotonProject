@@ -4,7 +4,16 @@ using Fusion;
 public class PilotItemSender : NetworkBehaviour
 {
     [Networked] public NetworkObject EngineerObject { get; private set; }
+    [SerializeField] private GameObject[] sendItemButtons;
 
+    public override void Spawned()
+    {
+        //Only shows buttons for sending items if pilot
+        foreach (var button in sendItemButtons)
+        {
+            button.SetActive(Object.HasInputAuthority);
+        }
+    }
 
     //Method for pilot's UI buttons (at least for testing at the moment)
     public void SendItem(int itemIndex)

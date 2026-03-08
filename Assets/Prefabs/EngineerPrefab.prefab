@@ -296,8 +296,6 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 1893012859630054196}
-  - {fileID: 6482360145970730168}
   - {fileID: 5507273820638999316}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &1893012859630054196
@@ -315,7 +313,6 @@ MonoBehaviour:
   inventoryManager: {fileID: 6482360145970730168}
   cargoHoldManager: {fileID: 5507273820638999316}
   baudRate: 9600
-  reconnectInterval: 2
   rfidDisplayText: {fileID: 8769692272551303186}
 --- !u!114 &6482360145970730168
 MonoBehaviour:
