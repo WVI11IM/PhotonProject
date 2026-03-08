@@ -1,7 +1,16 @@
+using Fusion;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InventoryManager : MonoBehaviour
+public enum ItemType
+{
+    Metal = 0,
+    Ammo = 1,
+    Fuel = 2,
+    Debris = 3
+}
+
+public class InventoryManager : NetworkBehaviour
 {
     private Dictionary<string, List<Item>> inventories =
         new Dictionary<string, List<Item>>();
@@ -13,7 +22,7 @@ public class InventoryManager : MonoBehaviour
             inventories[uid] = new List<Item>();
 
         inventories[uid].Add(item);
-        Debug.Log($"UID {uid}: Added {item.itemName} at position {inventories[uid].Count}");
+        Debug.Log($"UID {uid}: Added {item.itemType} at position {inventories[uid].Count}");
     }
 
     //Returns the list of items from a UID

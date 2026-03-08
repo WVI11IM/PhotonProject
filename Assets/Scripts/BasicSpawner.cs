@@ -10,17 +10,38 @@ using UnityEngine.SceneManagement;
 
 public class BasicSpawner : MonoBehaviour, INetworkRunnerCallbacks
 {
-    [SerializeField] private NetworkPrefabRef _rfidReaderPrefab;
+    [SerializeField] private NetworkPrefabRef pilotPrefab;
+    [SerializeField] private NetworkPrefabRef engineerPrefab;
 
-    private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
+    private NetworkObject spawnedEngineer;
+    private NetworkObject spawnedPilot;
 
     private NetworkRunner _runner;
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        if (runner.IsServer && runner.ActivePlayers.Count() == 1)
+        if (!runner.IsServer) return;
+
+        //TESTING: First player is engineer
+        if (spawnedEngineer == null)
         {
-            runner.Spawn(_rfidReaderPrefab, Vector3.zero, Quaternion.identity);
+            spawnedEngineer = runner.Spawn(engineerPrefab, Vector3.zero, Quaternion.identity, player);
+            return;
+        }
+        //TESTING: Second player is pilot
+        if (spawnedPilot == null)
+        {
+            spawnedPilot = runner.Spawn(pilotPrefab, Vector3.zero, Quaternion.identity, player);
+            //TESTING: Engineer is assigned to the pilot on spawn
+            var pilotSender = spawnedPilot.GetComponent<PilotItemSender>();
+            if (pilotSender != null)
+            {
+                var cargoHoldManager = spawnedEngineer.GetComponent<CargoHoldManager>();
+                if (cargoHoldManager != null)
+                {
+                    pilotSender.AssignEngineer(spawnedEngineer);
+                }
+            }
         }
     }
 

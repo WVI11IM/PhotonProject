@@ -1,10 +1,10 @@
 [System.Serializable]
 public class Item
 {
-    public string itemName;
+    public ItemType itemType;
 
-    public Item(string name)
+    public Item(ItemType type)
     {
-        this.itemName = name;
+        itemType = type;
     }
 }

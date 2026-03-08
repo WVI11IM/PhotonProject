@@ -4,7 +4,6 @@ using System.Collections;
 using System.IO.Ports;
 using System.Text;
 using TMPro;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using System.Management;
 
@@ -13,10 +12,10 @@ public class RFIDReader : NetworkBehaviour
 {
     [Header("Inventory Manager")]
     [SerializeField] private InventoryManager inventoryManager;
+    [SerializeField] private CargoHoldManager cargoHoldManager;
 
     [Header("Serial Settings")]
     [SerializeField] private int baudRate = 9600;
-    [SerializeField] private float reconnectInterval = 2f;
 
     [Header("UI")]
     [SerializeField] public TMP_Text rfidDisplayText;
@@ -85,7 +84,7 @@ public class RFIDReader : NetworkBehaviour
 
             if (!string.IsNullOrEmpty(uid))
             {
-                Debug.Log("RFID UID: " + uid);
+                //Debug.Log("RFID UID: " + uid);
 
                 OnUIDScanned(uid);
                 RPC_BroadcastToClients(uid);
@@ -97,24 +96,32 @@ public class RFIDReader : NetworkBehaviour
 
     private void OnUIDScanned(string uid)
     {
-        if (inventoryManager == null) return;
+        if (inventoryManager == null || cargoHoldManager == null) return;
 
-        //Testing: puts a random item in the scanned inventory
-        Item newItem = new Item("Item" + UnityEngine.Random.Range(1, 100));
-        inventoryManager.AddItem(uid, newItem);
+        if (!cargoHoldManager.TryGetNextItemFromCargoQueue(out ItemType nextType))
+        {
+            Debug.Log($"UID {uid}: No items in queue to add");
+            return;
+        }
+
+        Item nextItem = new Item(nextType);
+        inventoryManager.AddItem(uid, nextItem);
 
         var items = inventoryManager.GetItems(uid);
-        string sequence = string.Join(" -> ", items.ConvertAll(i => i.itemName));
+        string sequence = string.Join(" <- ", items.ConvertAll(i => i.itemType.ToString()));
         Debug.Log($"UID {uid} inventory order: {sequence}");
     }
 
     [Rpc(RpcSources.All, RpcTargets.All)]
     void RPC_BroadcastToClients(string uid)
     {
-        if (rfidDisplayText != null)
-        {
+        UpdateUIDText(uid);
+    }
+
+    private void UpdateUIDText(string uid)
+    {
+        if (rfidDisplayText != null && Object.HasInputAuthority)
             rfidDisplayText.text += $"Card scanned: {uid}\n";
-        }
     }
 
     void OnDisable()
