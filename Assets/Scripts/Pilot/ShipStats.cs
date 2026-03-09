@@ -24,6 +24,17 @@ namespace Pilot {
         // Update is called once per frame
         void Update() { }
 
+        /// <summary>
+        /// Subtract <paramref name="amount"/> from the ammo count, returning however much ammo exceeds the current ammo count.
+        /// </summary>
+        /// <param name="amount">How much ammo to consume.</param>
+        /// <returns>The difference between <paramref name="amount"/> and the current ammo count, if less than zero.</returns>
+        public int ConsumeAmmo(int amount) {
+            int diff = -Mathf.Min(0, ResAmmo - amount);
+            ResAmmo = Mathf.Max(0, ResAmmo - amount);
+            return diff;
+        }
+
     }
 
 }
