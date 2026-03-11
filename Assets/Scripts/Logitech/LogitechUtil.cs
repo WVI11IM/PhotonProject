@@ -1,5 +1,6 @@
 using System;
 using Logitech;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,32 +20,41 @@ namespace Logitech {
             }
         }
         #endregion
-
+        
         #region Properties
         /// <summary>
         /// Returns the wheel's rotation relative to its physical range of movement (-1.0 to 1.0)
         /// </summary>
-        public static float WheelAxis               => Instance._joyStatus.lX / (float)Int16.MaxValue;
+        public static float WheelAxis               => 
+            // Steering wheel value
+            Instance._joyStatus.lX / (float)Int16.MaxValue +
+            // Keyboard emulation value (if enabled, else zero)
+            (_config.allowKeyboardEmulation ? _config.keyboardActions["Emulation"].actionMap["Wheel"].GetControlMagnitude() : 0);
         /// <summary>
         /// Returns the number of revolutions the wheel has made (-1.5 to 1.5)
         /// </summary>
-        public static float WheelAxisRevolutions    => Instance._joyStatus.lX / (float)Int16.MaxValue / 1.5f; //TODO: Test with wheel, ensure this value is accurate
+        public static float WheelAxisRevolutions    => 
+            Instance._joyStatus.lX / (float)Int16.MaxValue / 1.5f; //TODO: Test with wheel, ensure this value is accurate
         /// <summary>
         /// Returns the wheel's rotation in degrees (-540.0 to 540.0)
         /// </summary>
-        public static float WheelAxisDegrees        => Instance._joyStatus.lX / (float)Int16.MaxValue / 540; //TODO: Test with wheel, ensure this value is accurate
+        public static float WheelAxisDegrees        => 
+            Instance._joyStatus.lX / (float)Int16.MaxValue / 540; //TODO: Test with wheel, ensure this value is accurate
         /// <summary>
         /// Returns how far the accelerator has been depressed, from 0 (resting position) to 1 (fully pressed).
         /// </summary>
-        public static float AxisPedalAccelerator    => AbsoluteIntToPercent(Instance._joyStatus.lY);
+        public static float AxisPedalAccelerator    => 
+            AbsoluteIntToPercent(Instance._joyStatus.lY);
         /// <summary>
         /// Returns how far the brake has been depressed, from 0 (resting position) to 1 (fully pressed).
         /// </summary>
-        public static float AxisPedalBrake          => AbsoluteIntToPercent(Instance._joyStatus.lRz);
+        public static float AxisPedalBrake          => 
+            AbsoluteIntToPercent(Instance._joyStatus.lRz);
         /// <summary>
         /// Returns how far the clutch has been depressed, from 0 (resting position) to 1 (fully pressed).
         /// </summary>
-        public static float AxisPedalClutch         => AbsoluteIntToPercent(Instance._joyStatus.rglSlider[0]);
+        public static float AxisPedalClutch         => 
+            AbsoluteIntToPercent(Instance._joyStatus.rglSlider[0]);
         #endregion
         
         // Logitech SDK
@@ -84,6 +94,39 @@ namespace Logitech {
             // Logi API returns values between the min and max values for a 16-bit integer
             return (float)value / Int16.MaxValue / -2 + 0.5f;
         }
+
+        #region Config
+        private static LogitechUtilSettingsScriptableObject _config;
+        private static void LoadConfig() {
+            _config = Resources.Load<LogitechUtilSettingsScriptableObject>("LogitechUtilConfig");
+
+            if (!_config)
+                throw new NullReferenceException(
+                    "LogitechUtilConfig asset could not be located. Make sure a LogitechUtilSettingsScriptableObject named \"LogitechUtilConfig\" exists in a Resources folder.");
+        }
+        [MenuItem("Logitech Utility/Config/Enable Keyboard Emulation")]
+        private static void ConfigEnableKeyboard() {
+            try {
+                LoadConfig();
+            } catch (Exception e) {
+                Debug.LogError(e);
+                return;
+            }
+            _config.allowKeyboardEmulation = true;
+            Debug.Log("Steering wheel emulation via keyboard input has been enabled.");
+        }
+        [MenuItem("Logitech Utility/Config/Disable Keyboard Emulation")]
+        private static void ConfigDisableKeyboard() {
+            try {
+                LoadConfig();
+            } catch (Exception e) {
+                Debug.LogError(e);
+                return;
+            }
+            _config.allowKeyboardEmulation = true;
+            Debug.Log("Steering wheel emulation via keyboard input has been disabled.");
+        }
+        #endregion
 
     }
 

@@ -28,12 +28,11 @@ namespace Pilot {
 
         // Update is called once per frame
         void Update() {
-        
-            if (LogitechUtil.AxisPedalClutch > pedalPressThreshold)
-                if (!_firing) {
+
+            if (LogitechUtil.AxisPedalClutch > pedalPressThreshold) {
+                if (!_firing)
                     FireStreamStart();
-                }
-            else if (_firing)
+            } else if (_firing)
                 FireStreamEnd();
 
             if (_firing && Time.time - _streamStartTime > streamChargeDuration) {
