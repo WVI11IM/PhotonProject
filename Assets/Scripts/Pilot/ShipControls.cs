@@ -2,17 +2,29 @@ using UnityEngine;
 using Logitech;
 
 namespace Pilot {
+
+    public enum SteeringMode {
+
+        CLASSIC_VELOCITY,
+        ABSOLUTE_ANGLE
+
+    }
     
     public class ShipControls : MonoBehaviour {
 
         [SerializeField] private ShipStats stats;
-        
-        [Header("Components")]
-        private Rigidbody2D _rb;
-        [SerializeField] private GameObject gun;
 
-        [Header("Config")]
+        [SerializeField] private SteeringMode steeringMode;
+        
+        private Rigidbody2D _rb;
+
+        [Header("Steering Config (Classic Velocity)")]
         [SerializeField] private float steerForce;
+        [Header("Steering Config (Absolute Angle)")]
+        [SerializeField] private float acceleration;
+        [SerializeField] private float max;
+        
+        [Header("Boost Config")]
         [SerializeField] private float boostForce;
         // How much to reduce the boost force depending on how much fuel is left.
         [SerializeField] private AnimationCurve boostForceFuelFalloff;
@@ -24,15 +36,25 @@ namespace Pilot {
 
         // Update is called once per frame
         void FixedUpdate() {
-            // Steering rotation (apply torque according to steering wheel rotation)
-            _rb.AddTorque(LogitechUtil.WheelAxis * steerForce * Time.fixedDeltaTime);
+            if (steeringMode == SteeringMode.CLASSIC_VELOCITY) {
+                // Steering rotation (apply torque according to steering wheel rotation)
+                _rb.AddTorque(LogitechUtil.WheelAxis * -steerForce * Time.fixedDeltaTime);
+                LogitechGSDK.LogiPlaySpringForce(0, 0, 100, 100);
+            } else {
+                float diff = (transform.rotation * Quaternion.Inverse(Quaternion.Euler(0, 0, 180 - LogitechUtil.WheelAxisDegrees))).eulerAngles.z -180;
+                Debug.Log($"Difference {diff}, wheel angle: {LogitechUtil.WheelAxisDegrees}");
+                _rb.AddTorque(
+                    Mathf.Clamp(diff * acceleration, -max, max) * Time.fixedDeltaTime);
+                LogitechGSDK.LogiPlaySpringForce(0, 0, 0, 0);
+            }
+
             // Acceleration boost 
             _rb.AddForce(
                 LogitechUtil.AxisPedalAccelerator * // Use the accelerator...
                 boostForce * // ...plus the force multiplier...
                 boostForceFuelFalloff.Evaluate(stats.ResFuel / stats.ResMaxFuel) * // ...with falloff if fuel is low...
                 Time.fixedDeltaTime * // ...plus the delta time adjustment
-                gun.transform.forward); // ...to move in the direction the gun is pointing.
+                transform.up); // ...to move in the direction the gun is pointing.
         }
 
     }

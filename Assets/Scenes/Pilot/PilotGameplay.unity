@@ -246,6 +246,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1 &218248194
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 218248195}
+  m_Layer: 0
+  m_Name: BulletSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 7174288486110832750, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &218248195
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 218248194}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1441998821}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &625039700
 GameObject:
   m_ObjectHideFlags: 0
@@ -440,7 +471,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
+  field of view: 84
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -516,7 +547,9 @@ GameObject:
   - component: {fileID: 1425819847}
   - component: {fileID: 1425819849}
   - component: {fileID: 1425819846}
+  - component: {fileID: 1425819851}
   - component: {fileID: 1425819848}
+  - component: {fileID: 1425819850}
   m_Layer: 0
   m_Name: Ship
   m_TagString: Untagged
@@ -589,21 +622,45 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 464b535a1ae6846279c2407cbf08d0a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pilot.ShipControls
-  gun: {fileID: 1214398354}
-  steerForce: 0
-  boostForce: 0
+  stats: {fileID: 1425819851}
+  steeringMode: 1
+  steerForce: 400
+  acceleration: -50
+  max: 500
+  boostForce: 500
   boostForceFuelFalloff:
     serializedVersion: 2
-    m_Curve: []
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.23426963
+      value: 0.7594151
+      inSlope: 0.8046492
+      outSlope: 0.8046492
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.06686446
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  resMaxFuel: 0
-  resMaxAmmo: 0
-  resMaxHp: 0
-  resFuel: 0
-  resAmmo: 0
-  resHp: 0
 --- !u!50 &1425819849
 Rigidbody2D:
   serializedVersion: 5
@@ -617,8 +674,8 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
+  m_LinearDamping: 0.5
+  m_AngularDamping: 10
   m_GravityScale: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -631,6 +688,44 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &1425819850
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1425819845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ccde06cf5df446c5b3e5e68a5c4461b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Pilot.ShipWeapon
+  stats: {fileID: 1425819851}
+  bulletPrefab: {fileID: -5752731047088192056, guid: d1c46a028a409c144afbf115d4aa5e2a, type: 3}
+  bulletSpawnPoint: {fileID: 218248195}
+  spreadAngle: 10
+  pedalPressThreshold: 0.8
+  burstBulletCount: 10
+  streamChargeDuration: 0.5
+  streamDelayBetweenShots: 0.25
+--- !u!114 &1425819851
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1425819845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fe0091937b1d4571a5de76ab1172ac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Pilot.ShipStats
+  <ResMaxFuel>k__BackingField: 100
+  <ResMaxAmmo>k__BackingField: 100
+  <ResMaxHp>k__BackingField: 100
+  <ResFuel>k__BackingField: 0
+  <ResAmmo>k__BackingField: 0
+  <ResHp>k__BackingField: 0
 --- !u!1 &1441998820
 GameObject:
   m_ObjectHideFlags: 0
@@ -662,7 +757,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0.65, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 218248195}
   m_Father: {fileID: 1214398355}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &1441998822

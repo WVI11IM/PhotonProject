@@ -8,11 +8,12 @@ namespace Pilot {
         [SerializeField] private ShipStats stats;
 
         [Header("Components")]
-        [SerializeField] private Bullet bullet;
+        [SerializeField] private Bullet bulletPrefab;
         [SerializeField] private Transform bulletSpawnPoint;
 
         // TODO: consider using pedal press depth to control stream/burst modes?
         [Header("Config")]
+        [SerializeField] private float spreadAngle = 10;
         [Range (0, 1)]
         [SerializeField] private float pedalPressThreshold;
         [SerializeField] private int burstBulletCount;
@@ -28,12 +29,11 @@ namespace Pilot {
 
         // Update is called once per frame
         void Update() {
-        
-            if (LogitechUtil.AxisPedalClutch > pedalPressThreshold)
-                if (!_firing) {
+
+            if (LogitechUtil.AxisPedalClutch > pedalPressThreshold) {
+                if (!_firing)
                     FireStreamStart();
-                }
-            else if (_firing)
+            } else if (_firing)
                 FireStreamEnd();
 
             if (_firing && Time.time - _streamStartTime > streamChargeDuration) {
@@ -52,7 +52,7 @@ namespace Pilot {
 
         private void FireStreamEnd() {
             _firing = false;
-            if (_streamStartTime - Time.time < streamChargeDuration) {
+            if (Time.time - _streamStartTime < streamChargeDuration) {
                 FireBurst();
             }
         }
@@ -63,7 +63,7 @@ namespace Pilot {
         }
 
         private void FireSingleBullet() {
-            Bullet b = Instantiate(bullet, bulletSpawnPoint.position, bulletSpawnPoint.rotation);
+            Bullet b = Instantiate(bulletPrefab, bulletSpawnPoint.position, bulletSpawnPoint.rotation * Quaternion.Euler(0, 0, Random.Range(-spreadAngle, spreadAngle)));
         }
 
     }
