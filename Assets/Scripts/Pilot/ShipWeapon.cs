@@ -18,6 +18,7 @@ namespace Pilot {
         [SerializeField] private int burstBulletCount;
         [SerializeField] private float streamChargeDuration;
         [SerializeField] private float streamDelayBetweenShots;
+        [SerializeField] private float spread;
 
         private bool _firing;
         private float _streamStartTime;
@@ -51,7 +52,7 @@ namespace Pilot {
 
         private void FireStreamEnd() {
             _firing = false;
-            if (_streamStartTime - Time.time < streamChargeDuration) {
+            if (Time.time - _streamStartTime < streamChargeDuration) {
                 FireBurst();
             }
         }
@@ -62,7 +63,7 @@ namespace Pilot {
         }
 
         private void FireSingleBullet() {
-            Bullet b = Instantiate(bullet, bulletSpawnPoint.position, bulletSpawnPoint.rotation);
+            Bullet b = Instantiate(bullet, bulletSpawnPoint.position, bulletSpawnPoint.rotation * Quaternion.Euler(0, 0, Random.Range(-spread, spread)));
         }
 
     }

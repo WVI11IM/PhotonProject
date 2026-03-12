@@ -25,14 +25,14 @@ namespace Pilot {
         // Update is called once per frame
         void FixedUpdate() {
             // Steering rotation (apply torque according to steering wheel rotation)
-            _rb.AddTorque(LogitechUtil.WheelAxis * steerForce * Time.fixedDeltaTime);
+            _rb.AddTorque(LogitechUtil.WheelAxis * -steerForce * Time.fixedDeltaTime);
             // Acceleration boost 
             _rb.AddForce(
                 LogitechUtil.AxisPedalAccelerator * // Use the accelerator...
                 boostForce * // ...plus the force multiplier...
                 boostForceFuelFalloff.Evaluate(stats.ResFuel / stats.ResMaxFuel) * // ...with falloff if fuel is low...
                 Time.fixedDeltaTime * // ...plus the delta time adjustment
-                gun.transform.forward); // ...to move in the direction the gun is pointing.
+                gun.transform.up); // ...to move in the direction the gun is pointing.
         }
 
     }

@@ -8,7 +8,7 @@ namespace Pilot {
         [SerializeField] private float travelSpeed;
 
         private void FixedUpdate() {
-            transform.Translate(transform.forward * Time.fixedDeltaTime);
+            transform.Translate(Vector2.up * (travelSpeed * Time.fixedDeltaTime));
         }
 
     }

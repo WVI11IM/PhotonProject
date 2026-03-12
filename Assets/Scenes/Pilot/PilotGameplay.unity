@@ -471,7 +471,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
+  field of view: 84
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -624,8 +624,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pilot.ShipControls
   stats: {fileID: 1425819851}
   gun: {fileID: 1214398354}
-  steerForce: 25
-  boostForce: 10
+  steerForce: 400
+  boostForce: 500
   boostForceFuelFalloff:
     serializedVersion: 2
     m_Curve:
@@ -672,8 +672,8 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 1
+  m_LinearDamping: 0.5
+  m_AngularDamping: 10
   m_GravityScale: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -701,10 +701,11 @@ MonoBehaviour:
   stats: {fileID: 1425819851}
   bullet: {fileID: -5752731047088192056, guid: d1c46a028a409c144afbf115d4aa5e2a, type: 3}
   bulletSpawnPoint: {fileID: 218248195}
-  pedalPressThreshold: 0.5
+  pedalPressThreshold: 0.8
   burstBulletCount: 10
-  streamChargeDuration: 1
-  streamDelayBetweenShots: 0.1
+  streamChargeDuration: 0.5
+  streamDelayBetweenShots: 0.25
+  spread: 10
 --- !u!114 &1425819851
 MonoBehaviour:
   m_ObjectHideFlags: 0
