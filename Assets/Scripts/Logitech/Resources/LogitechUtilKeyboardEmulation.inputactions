@@ -8,9 +8,9 @@
             "actions": [
                 {
                     "name": "Wheel",
-                    "type": "Value",
+                    "type": "Button",
                     "id": "36a58d94-f2af-4a43-a541-2c0911d1e02d",
-                    "expectedControlType": "Analog",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -76,6 +76,17 @@
                     "action": "Wheel",
                     "isComposite": false,
                     "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "18e86492-6e1d-4905-8a76-62c63df6787b",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Wheel",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 },
                 {
                     "name": "Pedal",

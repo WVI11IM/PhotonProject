@@ -7,7 +7,7 @@ namespace Logitech {
     public class LogitechUtilSettingsScriptableObject : ScriptableObject {
 
         public bool allowKeyboardEmulation;
-        public InputActionMap keyboardActions;
+        public InputActionAsset keyboardActions;
 
     }
 
