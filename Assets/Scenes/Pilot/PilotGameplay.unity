@@ -623,8 +623,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pilot.ShipControls
   stats: {fileID: 1425819851}
-  gun: {fileID: 1214398354}
+  steeringMode: 1
   steerForce: 400
+  acceleration: -50
+  max: 500
   boostForce: 500
   boostForceFuelFalloff:
     serializedVersion: 2
@@ -699,13 +701,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pilot.ShipWeapon
   stats: {fileID: 1425819851}
-  bullet: {fileID: -5752731047088192056, guid: d1c46a028a409c144afbf115d4aa5e2a, type: 3}
+  bulletPrefab: {fileID: -5752731047088192056, guid: d1c46a028a409c144afbf115d4aa5e2a, type: 3}
   bulletSpawnPoint: {fileID: 218248195}
+  spreadAngle: 10
   pedalPressThreshold: 0.8
   burstBulletCount: 10
   streamChargeDuration: 0.5
   streamDelayBetweenShots: 0.25
-  spread: 10
 --- !u!114 &1425819851
 MonoBehaviour:
   m_ObjectHideFlags: 0

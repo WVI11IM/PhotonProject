@@ -44,12 +44,12 @@ namespace Logitech {
         /// Returns the number of revolutions the wheel has made (-1.5 to 1.5)
         /// </summary>
         public static float WheelAxisRevolutions    => 
-            (Instance == null ? 0 : Instance._joyStatus.lX / (float)Int16.MaxValue / 1.5f); //TODO: Test with wheel, ensure this value is accurate
+            (Instance == null ? 0 : Instance._joyStatus.lX / (float)Int16.MaxValue / 1.25f); //TODO: Test with wheel, ensure this value is accurate
         /// <summary>
         /// Returns the wheel's rotation in degrees (-540.0 to 540.0)
         /// </summary>
         public static float WheelAxisDegrees        => 
-            (Instance == null ? 0 : Instance._joyStatus.lX / (float)Int16.MaxValue / 540); //TODO: Test with wheel, ensure this value is accurate
+            (Instance == null ? 0 : Instance._joyStatus.lX / (float)Int16.MaxValue * 450); //TODO: Test with wheel, ensure this value is accurate
         /// <summary>
         /// Returns how far the accelerator has been depressed, from 0 (resting position) to 1 (fully pressed).
         /// </summary>
@@ -96,7 +96,6 @@ namespace Logitech {
 
         // Update is called once per frame
         void Update() {
-            Debug.Log(_isActionWheel.ReadValue<double>());
             // Update Logi API
             LogitechGSDK.LogiUpdate();
             // For the sake of simplicity, we'll only check if the first device is a steering wheel. A more robust system should detect if *any* connected devices is a steering wheel.
