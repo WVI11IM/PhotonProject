@@ -111,6 +111,7 @@ public class RFIDReader : MonoBehaviour
             //If the card has no items inside, returns
             if (items.Count == 0)
             {
+                audioEmpty.Play();
                 Debug.Log($"UID {uid}: Card has no items");
                 return;
             }
@@ -134,6 +135,7 @@ public class RFIDReader : MonoBehaviour
             //If there are no items on queue, returns
             if (!cargoHoldManager.TryGetNextItemFromCargoQueue(out ItemType nextType))
             {
+                audioEmpty.Play();
                 Debug.Log($"UID {uid}: No items in queue to add");
                 return;
             }
@@ -142,6 +144,7 @@ public class RFIDReader : MonoBehaviour
 
             Item nextItemStored = new Item(nextType);
             inventoryManager.AddItem(uid, nextItemStored);
+            audioCollect.Play();
 
             var storedItems = inventoryManager.GetItems(uid);
             string sequence = string.Join(" <- ", storedItems.Select(i => i.itemType.ToString()));

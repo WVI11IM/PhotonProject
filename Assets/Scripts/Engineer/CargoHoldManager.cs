@@ -9,6 +9,8 @@ public class CargoHoldManager : NetworkBehaviour
     [SerializeField] private int queueCapacity = 10;
     [SerializeField] private TMPro.TextMeshProUGUI cargoQueueText;
 
+    [SerializeField] private AudioSource audioNewCargo;
+
     public override void Spawned()
     {
         //Only shows cargo queue text if engineer
@@ -25,6 +27,7 @@ public class CargoHoldManager : NetworkBehaviour
         if (cargoQueue.Count < queueCapacity)
         {
             cargoQueue.Enqueue(itemType);
+            audioNewCargo.Play();
             Debug.Log($"{itemType} added to cargo queue");
             RPC_UpdateCargoQueueText(GetCargoQueueText());
 

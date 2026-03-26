@@ -5,7 +5,6 @@ public class EngineerItemSender : NetworkBehaviour
     [Networked] public NetworkObject PilotObject { get; set; }
 
     //Method for engineer to deploy item and sector
-
     public void SendItemToPilot(ItemType item, Sector sector)
     {
         if (!Object.HasInputAuthority) return;

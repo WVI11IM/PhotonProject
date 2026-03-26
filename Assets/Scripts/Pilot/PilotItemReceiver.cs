@@ -6,6 +6,11 @@ public class PilotItemReceiver : NetworkBehaviour
 {
     [SerializeField] private TMP_Text shipStatusText;
 
+    [Header("Audio Sources")]
+    [SerializeField] private AudioSource audioRight;
+    [SerializeField] private AudioSource audioWrong;
+    [SerializeField] private AudioSource audioEject;
+
     public override void Spawned()
     {
         //When spawned, looks for the engineer in order to assign itself to their EngineerItemSender component
@@ -33,11 +38,13 @@ public class PilotItemReceiver : NetworkBehaviour
         //If it's the eject sector, no penalty is applied
         if (sector == Sector.Eject)
         {
+            audioEject.Play();
             message = $"Item {item} ejected safely";
         }
         //But if an item is placed inside a wrong sector, it gives a penalty to the ship
         else if (!IsItemValidForSector(item, sector))
         {
+            audioWrong.Play();
             message = $"Wrong item deployed! {item} to {sector}! Penalty!";
             TriggerPenalty();
         }
@@ -73,16 +80,19 @@ public class PilotItemReceiver : NetworkBehaviour
 
     string AddToArmor()
     {
+        audioRight.Play();
         return "Armor Up!";
     }
 
     string AddToWeapon()
     {
+        audioRight.Play();
         return "Weapon Up!";
     }
 
     string AddToTank()
     {
+        audioRight.Play();
         return "Tank Up!";
     }
 
