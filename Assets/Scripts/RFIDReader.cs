@@ -1,15 +1,19 @@
-using Fusion;
 using System;
 using System.Collections;
 using System.IO.Ports;
 using System.Text;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
+using System.Management;
+using System.Linq;
 
-public class RFIDReader : NetworkBehaviour
+public class RFIDReader : MonoBehaviour
 {
+    [Header("Inventory Manager")]
+    [SerializeField] private InventoryManager inventoryManager;
+    [SerializeField] private CargoHoldManager cargoHoldManager;
+
     [Header("Serial Settings")]
-    [SerializeField] private string portName = "COM3";
     [SerializeField] private int baudRate = 9600;
 
     [Header("UI")]
@@ -18,27 +22,45 @@ public class RFIDReader : NetworkBehaviour
     private SerialPort sp;
     private StringBuilder buffer = new StringBuilder();
 
-    public override void Spawned()
+    private void TryConnectToRFID()
     {
-        if (rfidDisplayText == null)
+        //Get all serial ports from computer
+        string[] ports = SerialPort.GetPortNames();
+
+        //Checks each port until success
+        foreach (string port in ports)
         {
-            rfidDisplayText = GameObject.Find("RFIDText").GetComponent<TMP_Text>();
+            try
+            {
+                SerialPort testPort = new SerialPort(port, baudRate);
+                testPort.ReadTimeout = 500;
+                testPort.Open();
+
+                sp = testPort;
+                sp.DiscardInBuffer();
+
+                Debug.Log("Port opened: " + port);
+            }
+            catch
+            {
+                //Ignore the ones that fail
+            }
         }
     }
 
     void Start()
     {
-        if (!Object.HasStateAuthority) return;
+        TryConnectToRFID();
 
-        sp = new SerialPort(portName, baudRate);
-        sp.Open();
-        sp.ReadTimeout = 1000;
-        sp.DiscardInBuffer();
+        //if (sp != null && sp.IsOpen)
+        //    Debug.Log("RFID reader connected");
+        //else
+        //    Debug.Log("No RFID reader detected");
     }
 
     void Update()
     {
-        if (!Object.HasStateAuthority || sp == null || !sp.IsOpen) return;
+        if (sp == null || !sp.IsOpen) return;
 
         while (sp.BytesToRead > 0)
         { 
@@ -53,25 +75,38 @@ public class RFIDReader : NetworkBehaviour
 
             if (!string.IsNullOrEmpty(uid))
             {
-                Debug.Log("RFID UID: " + uid);
-
-                if (Object.HasStateAuthority)
-                {
-                    RPC_BroadcastToClients(uid);
-                }
-                    
+                OnUIDScanned(uid);
+                UpdateUIDText(uid);
             }
 
         }
     }
 
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    void RPC_BroadcastToClients(string uid)
+    //When a card is scanned, analyzes the CargoHoldManager to check if any items can be found
+    private void OnUIDScanned(string uid)
+    {
+        if (inventoryManager == null || cargoHoldManager == null) return;
+
+        if (!cargoHoldManager.TryGetNextItemFromCargoQueue(out ItemType nextType))
+        {
+            Debug.Log($"UID {uid}: No items in queue to add");
+            return;
+        }
+
+        //If there's an item on the cargo queue, add it to the inventory of tapped card
+        Item nextItem = new Item(nextType);
+        inventoryManager.AddItem(uid, nextItem);
+
+        var items = inventoryManager.GetItems(uid);
+        string sequence = string.Join(" <- ", items.Select(i => i.itemType.ToString()));
+        Debug.Log($"UID {uid} inventory order: {sequence}");
+    }
+
+    //Updates text and shows which card got scanned
+    private void UpdateUIDText(string uid)
     {
         if (rfidDisplayText != null)
-        {
             rfidDisplayText.text += $"Card scanned: {uid}\n";
-        }
     }
 
     void OnDisable()
