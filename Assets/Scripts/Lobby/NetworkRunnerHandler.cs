@@ -5,58 +5,78 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
+public class NetworkRunnerHandler : Singleton<NetworkRunnerHandler>, INetworkRunnerCallbacks
 {
     public NetworkRunner networkRunnerPrefab;
 
+    public Dictionary<PlayerRef, NetworkPlayerData> connectedPlayers = new Dictionary<PlayerRef, NetworkPlayerData>();
+
     NetworkRunner networkRunner;
-    [SerializeField] private SessionListUIHandler sessionListUI;
+    public NetworkRunner Runner => networkRunner;
 
-    private void Awake()
+    private SessionListUIHandler sessionListUI;
+    private RoomPlayerListUIHandler roomUI;
+
+    //Index of lobby scene
+    public const int LOBBY_SCENE_INDEX = 0;
+    //Index of session room scene
+    public const int ROOM_SCENE_INDEX = 1;
+    //Index of engineer scene
+    public const int ENGINEER_SCENE_INDEX = 2;
+    //Index of pilot scene
+    public const int PILOT_SCENE_INDEX = 3;
+
+    protected override void Awake()
     {
-        NetworkRunner networkRunnerInScene = FindFirstObjectByType<NetworkRunner>();
+        base.Awake();
 
-        //if we already have a network runner on scene, we shouldn't create another one, use the existing one
-        if (networkRunnerInScene != null)
-            networkRunner = networkRunnerInScene;
-    }
+        networkRunner = FindFirstObjectByType<NetworkRunner>();
 
-    private async void Start()
-    {
         if (networkRunner == null)
         {
             networkRunner = Instantiate(networkRunnerPrefab);
             networkRunner.name = "Network Runner";
-            //Register this script to receive Fusion events
-            networkRunner.AddCallbacks(this);
+            DontDestroyOnLoad(networkRunner.gameObject);
         }
+        //Register this script to receive Fusion events
+        networkRunner.AddCallbacks(this);
+    }
+    public void RegisterSessionListUI(SessionListUIHandler ui)
+    {
+        sessionListUI = ui;
+    }
+    public void RegisterRoomUI(RoomPlayerListUIHandler ui)
+    {
+        roomUI = ui;
+        roomUI.UpdatePlayerList(connectedPlayers);
+
     }
 
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
     {
-        sessionListUI.ClearList();
-
-        //If there are no sessions...
-        if (sessionList.Count == 0)
+        if (sessionListUI != null)
         {
-            sessionListUI.OnNoSessionsFound();
-            return;
-        }
+            sessionListUI.ClearList();
 
-        foreach (SessionInfo session in sessionList)
-        {
-            sessionListUI.AddToList(session);
+            //If there are no sessions...
+            if (sessionList.Count == 0)
+            {
+                sessionListUI.OnNoSessionsFound();
+                return;
+            }
+
+            foreach (var session in sessionList)
+            {
+                sessionListUI.AddToList(session);
+            }
         }
     }
 
-    //Creates a session with given name
-
-    //THIS ONLY CREATES THE SESSION IN FUSION "ON PAPER"
-    //WE STILL NEED TO MAKE PROPER SCENE TRANSITIONS AND ROLE-SPECIFIC SCENES, those are not yet implemented
+    //Creates a session with given name and redirects player to Room scene
     public async void CreateSession(string sessionName)
     {
         NetworkSceneInfo sceneInfo = new NetworkSceneInfo();
-        sceneInfo.AddSceneRef(SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex));
+        sceneInfo.AddSceneRef(SceneRef.FromIndex(ROOM_SCENE_INDEX));
 
         await networkRunner.StartGame(new StartGameArgs()
         {
@@ -66,15 +86,18 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
             SceneManager = networkRunner.GetComponent<NetworkSceneManagerDefault>(),
             PlayerCount = 2
         });
+
+        if (roomUI != null)
+        {
+            roomUI.SetRoomName(sessionName);
+        }
     }
 
-    //Join an existing session
+    //Join an existing session and redirects player to Room scene
     public async void JoinSession(SessionInfo sessionInfo)
     {
-        await networkRunner.Shutdown();
-
         NetworkSceneInfo sceneInfo = new NetworkSceneInfo();
-        sceneInfo.AddSceneRef(SceneRef.FromIndex(SceneManager.GetActiveScene().buildIndex));
+        sceneInfo.AddSceneRef(SceneRef.FromIndex(ROOM_SCENE_INDEX));
 
         await networkRunner.StartGame(new StartGameArgs()
         {
@@ -83,6 +106,11 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
             Scene = sceneInfo,
             SceneManager = networkRunner.GetComponent<NetworkSceneManagerDefault>()
         });
+
+        if (roomUI != null)
+        {
+            roomUI.SetRoomName(sessionInfo.Name);
+        }
     }
 
     //Called after role and name assingment
@@ -102,17 +130,104 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
+        if (!connectedPlayers.ContainsKey(player))
+        {
+            if (player == runner.LocalPlayer)
+            {
+                connectedPlayers[player] =
+                    new NetworkPlayerData(PlayerInfo.Name, PlayerInfo.Role, player);
+            }
+            else
+            {
+                //STILL NEED TO PROPERLY SEND RPC FOR OTHER PLAYER'S INFO TO BE FILLED IN
+                connectedPlayers[player] =
+                    new NetworkPlayerData("Player", Role.None, player);
+            }
+        }
+
+        if (roomUI != null)
+        {
+            roomUI.UpdatePlayerList(connectedPlayers);
+        }
+    }
+    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
+    {
+        if (!runner.IsServer)
+            return;
+
+        connectedPlayers.Remove(player);
+
+        if (roomUI != null)
+        {
+            roomUI.UpdatePlayerList(connectedPlayers);
+        }
     }
 
+    public void StartGame()
+    {
+        if (!networkRunner.IsServer)
+            return;
+
+        foreach (var player in connectedPlayers.Values)
+        {
+            //WHEN STARTING THE GAME, EACH ROLE WILL HAVE THEIR DESIGNATED GAMEPLAY SCENE
+            if (player.playerRole == Role.Engineer)
+            {
+                //networkRunner.SetPlayerScene(player.playerRef, SceneRef.FromIndex(ENGINEER_SCENE_INDEX));
+            }
+            else if (player.playerRole == Role.Pilot)
+            {
+                //networkRunner.SetPlayerScene(player.playerRef, SceneRef.FromIndex(PILOT_SCENE_INDEX));
+            }
+        }
+    }
+
+    public void KickPlayer(string playerName)
+    {
+        if (!networkRunner.IsServer)
+            return;
+
+        foreach (var kvp in connectedPlayers)
+        {
+            if (kvp.Value.playerName == playerName)
+            {
+                networkRunner.Disconnect(kvp.Key);
+                break;
+            }
+        }
+    }
+
+    public void LeaveRoom()
+    {
+        //Debug.Log("LEAVE ROOM!!");
+        if (networkRunner == null)
+        {
+            SceneManager.LoadScene(LOBBY_SCENE_INDEX);
+            return;
+        }
+
+        if (networkRunner.IsServer)
+        {
+            //Disconnects all clients before shutting down
+            foreach (var player in connectedPlayers.Keys)
+            {
+                if (player != networkRunner.LocalPlayer)
+                    networkRunner.Disconnect(player);
+            }
+        }
+
+        networkRunner.Disconnect(networkRunner.LocalPlayer);
+        connectedPlayers.Clear();
+        SceneManager.LoadScene(LOBBY_SCENE_INDEX);
+    }
+    public void OnConnectedToServer(NetworkRunner runner)
+    {
+    }
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
     {
     }
 
     public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
-    {
-    }
-
-    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
     {
     }
 
@@ -149,10 +264,6 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
     }
 
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input)
-    {
-    }
-
-    public void OnConnectedToServer(NetworkRunner runner)
     {
     }
 

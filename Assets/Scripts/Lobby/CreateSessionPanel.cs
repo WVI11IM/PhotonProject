@@ -11,8 +11,6 @@ public class CreateSessionPanel : MonoBehaviour
     [SerializeField] private GameObject sessionListPanel;
     [SerializeField] private GameObject createSessionPanel;
 
-    [SerializeField] private NetworkRunnerHandler runnerHandler;
-
     //This script checks for the session's name and assigns the buttons' functions for panel transitions
 
     private void Start()
@@ -37,10 +35,10 @@ public class CreateSessionPanel : MonoBehaviour
         if (string.IsNullOrEmpty(sessionName))
             return;
 
-        runnerHandler.CreateSession(sessionName);
+        NetworkRunnerHandler.Instance.CreateSession(sessionName);
 
         createSessionPanel.SetActive(false);
-        sessionListPanel.SetActive(true);
+        sessionListPanel.SetActive(false);
     }
 
     private void OnCancel()

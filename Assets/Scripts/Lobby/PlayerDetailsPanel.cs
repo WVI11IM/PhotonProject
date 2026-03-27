@@ -12,8 +12,6 @@ public class PlayerDetailsPanel : MonoBehaviour
     [SerializeField] private GameObject sessionListPanel;
     [SerializeField] private GameObject detailsPanel;
 
-    [SerializeField] private NetworkRunnerHandler runnerHandler;
-
     private Role selectedRole = Role.None;
 
     //This script checks for the player's name and role to update buttons and panels.
@@ -76,6 +74,6 @@ public class PlayerDetailsPanel : MonoBehaviour
         detailsPanel.SetActive(false);
         sessionListPanel.SetActive(true);
 
-        runnerHandler.StartBrowsingSessions();
+        NetworkRunnerHandler.Instance.StartBrowsingSessions();
     }
 }
