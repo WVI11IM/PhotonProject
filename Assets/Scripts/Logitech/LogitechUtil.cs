@@ -142,6 +142,7 @@ namespace Logitech {
                 throw new NullReferenceException(
                     "LogitechUtilConfig asset could not be located. Make sure a LogitechUtilSettingsScriptableObject named \"LogitechUtilConfig\" exists in a Resources folder.");
         }
+#if UNITY_EDITOR
         [MenuItem("Logitech Utility/Config/Enable Keyboard Emulation")]
         private static void ConfigEnableKeyboard() {
             try {
@@ -164,7 +165,8 @@ namespace Logitech {
             _config.allowKeyboardEmulation = true;
             Debug.Log("Steering wheel emulation via keyboard input has been disabled.");
         }
-        #endregion
+#endif
+#endregion
 
     }
 
