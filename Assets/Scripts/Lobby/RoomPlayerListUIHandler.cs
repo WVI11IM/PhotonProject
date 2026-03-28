@@ -21,9 +21,8 @@ public class RoomPlayerListUIHandler : MonoBehaviour
     }
     private void Start()
     {
-        //Updates the player list and room name
+        //Updates room name
 
-        UpdatePlayerList(NetworkRunnerHandler.Instance.connectedPlayers);
         if (NetworkRunnerHandler.Instance.Runner != null)
         {
             SetRoomName(NetworkRunnerHandler.Instance.Runner.SessionInfo.Name);
@@ -60,12 +59,12 @@ public class RoomPlayerListUIHandler : MonoBehaviour
             if (data.playerRole == Role.Engineer)
                 hasEngineer = true;
 
+            bool isMasterClient = NetworkRunnerHandler.Instance.Runner.IsSharedModeMasterClient;
+            bool isSelf = kvp.Key == NetworkRunnerHandler.Instance.Runner.LocalPlayer;
+
             var item = Instantiate(playerItemPrefab, playerListLayout.transform).GetComponent<RoomPlayerListUIItem>();
             item.OnKickPlayer += OnKickPlayer;
-
-            bool isHost = NetworkRunnerHandler.Instance.Runner.IsServer;
-
-            item.SetInformation(data.playerName, data.playerRole, isHost);
+            item.SetInformation(data.playerName, data.playerRole, isMasterClient && !isSelf, kvp.Key);
         }
 
         //The game can only start if room has a pilot and an engineer
@@ -73,20 +72,20 @@ public class RoomPlayerListUIHandler : MonoBehaviour
 
     }
 
-    public void AddPlayer(string playerName, Role role, bool showKickButton)
+    public void AddPlayer(string playerName, Role role, bool showKickButton, PlayerRef playerRef)
     {
         if (playerListLayout.transform.childCount >= MAX_PLAYERS)
             return;
         RoomPlayerListUIItem item = Instantiate(playerItemPrefab, playerListLayout.transform).GetComponent<RoomPlayerListUIItem>();
 
-        item.SetInformation(playerName, role, showKickButton);
+        item.SetInformation(playerName, role, showKickButton, playerRef);
 
         item.OnKickPlayer += OnKickPlayer;
     }
 
-    private void OnKickPlayer(string playerName)
+    private void OnKickPlayer(PlayerRef playerRef)
     {
-        NetworkRunnerHandler.Instance.KickPlayer(playerName);
+        NetworkRunnerHandler.Instance.KickPlayer(playerRef);
     }
 
     public void OnLeaveClicked()

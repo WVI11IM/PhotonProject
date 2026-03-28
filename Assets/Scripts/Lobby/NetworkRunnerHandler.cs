@@ -1,13 +1,17 @@
 using Fusion;
 using Fusion.Sockets;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class NetworkRunnerHandler : Singleton<NetworkRunnerHandler>, INetworkRunnerCallbacks
+public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
 {
+    public static NetworkRunnerHandler Instance;
+
     public NetworkRunner networkRunnerPrefab;
+    public NetworkObject playerNetworkPrefab;
 
     public Dictionary<PlayerRef, NetworkPlayerData> connectedPlayers = new Dictionary<PlayerRef, NetworkPlayerData>();
 
@@ -16,6 +20,8 @@ public class NetworkRunnerHandler : Singleton<NetworkRunnerHandler>, INetworkRun
 
     private SessionListUIHandler sessionListUI;
     private RoomPlayerListUIHandler roomUI;
+    [HideInInspector] public bool justLeftRoom = false;
+
 
     //Index of lobby scene
     public const int LOBBY_SCENE_INDEX = 0;
@@ -26,12 +32,19 @@ public class NetworkRunnerHandler : Singleton<NetworkRunnerHandler>, INetworkRun
     //Index of pilot scene
     public const int PILOT_SCENE_INDEX = 3;
 
-    protected override void Awake()
+    private void Awake()
     {
-        base.Awake();
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else if (Instance != this)
+        {
+            Destroy(gameObject);
+        }
 
         networkRunner = FindFirstObjectByType<NetworkRunner>();
-
         if (networkRunner == null)
         {
             networkRunner = Instantiate(networkRunnerPrefab);
@@ -41,6 +54,16 @@ public class NetworkRunnerHandler : Singleton<NetworkRunnerHandler>, INetworkRun
         //Register this script to receive Fusion events
         networkRunner.AddCallbacks(this);
     }
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
     public void RegisterSessionListUI(SessionListUIHandler ui)
     {
         sessionListUI = ui;
@@ -87,6 +110,12 @@ public class NetworkRunnerHandler : Singleton<NetworkRunnerHandler>, INetworkRun
             PlayerCount = 2
         });
 
+        //Spawns networked player prefab for this client
+        if (playerNetworkPrefab != null)
+        {
+            networkRunner.Spawn(playerNetworkPrefab, Vector3.zero, Quaternion.identity, networkRunner.LocalPlayer);
+        }
+
         if (roomUI != null)
         {
             roomUI.SetRoomName(sessionName);
@@ -101,11 +130,17 @@ public class NetworkRunnerHandler : Singleton<NetworkRunnerHandler>, INetworkRun
 
         await networkRunner.StartGame(new StartGameArgs()
         {
-            GameMode = GameMode.Client,
+            GameMode = GameMode.Shared,
             SessionName = sessionInfo.Name,
             Scene = sceneInfo,
             SceneManager = networkRunner.GetComponent<NetworkSceneManagerDefault>()
         });
+
+        //Spawns networked player prefab for this client
+        if (playerNetworkPrefab != null)
+        {
+            networkRunner.Spawn(playerNetworkPrefab, Vector3.zero, Quaternion.identity, networkRunner.LocalPlayer);
+        }
 
         if (roomUI != null)
         {
@@ -118,30 +153,53 @@ public class NetworkRunnerHandler : Singleton<NetworkRunnerHandler>, INetworkRun
     {
         if (networkRunner == null)
         {
-            return;
+            networkRunner = Instantiate(networkRunnerPrefab);
+            networkRunner.name = "Network Runner";
+            DontDestroyOnLoad(networkRunner.gameObject);
+            networkRunner.AddCallbacks(this);
         }
 
-        //Join the shared lobby (NOT A SESSION, not yet)
         await networkRunner.JoinSessionLobby(SessionLobby.Shared);
 
-        //Updates the UI
         sessionListUI.OnLookingForGameSessions();
     }
+    public void OnPlayerInfoUpdated(PlayerNetwork playerNetwork)
+    {
+        PlayerRef playerRef = playerNetwork.Object.InputAuthority;
 
+        if (!connectedPlayers.ContainsKey(playerRef))
+        {
+            //Add new entry
+            connectedPlayers[playerRef] = new NetworkPlayerData(
+                playerNetwork.playerName,
+                playerNetwork.playerRole,
+                playerRef
+            );
+        }
+        else
+        {
+            //Update existing one
+            connectedPlayers[playerRef].playerName = playerNetwork.playerName;
+            connectedPlayers[playerRef].playerRole = playerNetwork.playerRole;
+        }
+        if (roomUI != null)
+        {
+            roomUI.UpdatePlayerList(connectedPlayers);
+        }
+    }
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
         if (!connectedPlayers.ContainsKey(player))
         {
             if (player == runner.LocalPlayer)
             {
-                connectedPlayers[player] =
-                    new NetworkPlayerData(PlayerInfo.Name, PlayerInfo.Role, player);
+                //For the local player, use name/role immediately
+                connectedPlayers[player] = new NetworkPlayerData(PlayerInfo.Name, PlayerInfo.Role, player);
             }
             else
             {
-                //STILL NEED TO PROPERLY SEND RPC FOR OTHER PLAYER'S INFO TO BE FILLED IN
-                connectedPlayers[player] =
-                    new NetworkPlayerData("Player", Role.None, player);
+                //For others, use placeholder until their RPC updates (supposedly, because this is simply just not updating at all wtfff)
+                connectedPlayers[player] = new NetworkPlayerData("Loading...", Role.None, player);
             }
         }
 
@@ -152,9 +210,6 @@ public class NetworkRunnerHandler : Singleton<NetworkRunnerHandler>, INetworkRun
     }
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
     {
-        if (!runner.IsServer)
-            return;
-
         connectedPlayers.Remove(player);
 
         if (roomUI != null)
@@ -182,44 +237,94 @@ public class NetworkRunnerHandler : Singleton<NetworkRunnerHandler>, INetworkRun
         }
     }
 
-    public void KickPlayer(string playerName)
+    public void KickPlayer(PlayerRef playerRef)
     {
-        if (!networkRunner.IsServer)
+        if (!networkRunner.IsSharedModeMasterClient)
             return;
 
-        foreach (var kvp in connectedPlayers)
-        {
-            if (kvp.Value.playerName == playerName)
-            {
-                networkRunner.Disconnect(kvp.Key);
-                break;
-            }
-        }
+        networkRunner.Disconnect(playerRef);
     }
 
-    public void LeaveRoom()
+    public async void LeaveRoom()
     {
-        //Debug.Log("LEAVE ROOM!!");
-        if (networkRunner == null)
-        {
-            SceneManager.LoadScene(LOBBY_SCENE_INDEX);
-            return;
-        }
-
-        if (networkRunner.IsServer)
-        {
-            //Disconnects all clients before shutting down
-            foreach (var player in connectedPlayers.Keys)
-            {
-                if (player != networkRunner.LocalPlayer)
-                    networkRunner.Disconnect(player);
-            }
-        }
-
-        networkRunner.Disconnect(networkRunner.LocalPlayer);
         connectedPlayers.Clear();
+        justLeftRoom = true;
+
+        if (networkRunner != null && networkRunner.IsRunning)
+        {
+            await networkRunner.Shutdown();
+        }
+
         SceneManager.LoadScene(LOBBY_SCENE_INDEX);
     }
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.buildIndex == LOBBY_SCENE_INDEX)
+        {
+            StartCoroutine(EnableLobbyUI());
+        }
+    }
+    private IEnumerator EnableLobbyUI()
+    {
+        //Wait one frame
+        yield return null;
+
+        if (sessionListUI != null)
+        {
+            if (justLeftRoom)
+            {
+                sessionListUI.ReturnFromSessionLeave();
+                StartBrowsingSessions();
+                justLeftRoom = false;
+            }
+        }
+    }
+    public void SetLocalPlayerInfo(string name, Role role)
+    {
+        if (networkRunner == null || !networkRunner.IsRunning)
+            return;
+
+        PlayerRef local = networkRunner.LocalPlayer;
+
+        // Update own entry
+        connectedPlayers[local] = new NetworkPlayerData(name, role, local);
+
+        // Broadcast to all clients
+        UpdateAllClientsPlayerList();
+    }
+
+    private void UpdateAllClientsPlayerList()
+    {
+        // Convert dictionary to arrays for RPC
+        int count = connectedPlayers.Count;
+        var names = new string[count];
+        var roles = new Role[count];
+        var refs = new PlayerRef[count];
+
+        int i = 0;
+        foreach (var kvp in connectedPlayers)
+        {
+            names[i] = kvp.Value.playerName;
+            roles[i] = kvp.Value.playerRole;
+            refs[i] = kvp.Key;
+            i++;
+        }
+
+        RPC_UpdatePlayerList(names, roles, refs);
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.All)]
+    void RPC_UpdatePlayerList(string[] names, Role[] roles, PlayerRef[] refs)
+    {
+        connectedPlayers.Clear();
+
+        for (int i = 0; i < names.Length; i++)
+        {
+            connectedPlayers[refs[i]] = new NetworkPlayerData(names[i], roles[i], refs[i]);
+        }
+        roomUI?.UpdatePlayerList(connectedPlayers);
+    }
+
     public void OnConnectedToServer(NetworkRunner runner)
     {
     }

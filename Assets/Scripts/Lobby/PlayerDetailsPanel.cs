@@ -9,13 +9,20 @@ public class PlayerDetailsPanel : MonoBehaviour
     [SerializeField] private Button engineerButton;
     [SerializeField] private Button confirmButton;
 
-    [SerializeField] private GameObject sessionListPanel;
     [SerializeField] private GameObject detailsPanel;
+    [SerializeField] private GameObject sessionListPanel;
+
+    public SessionListUIHandler sessionListUI;
 
     private Role selectedRole = Role.None;
 
     //This script checks for the player's name and role to update buttons and panels.
     //It also assigns the buttons' functions for panel transitions
+
+    private void Awake()
+    {
+        NetworkRunnerHandler.Instance.RegisterSessionListUI(sessionListUI);
+    }
 
     private void Start()
     {

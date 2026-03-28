@@ -1,3 +1,4 @@
+using Fusion;
 using System;
 using TMPro;
 using UnityEngine;
@@ -11,13 +12,15 @@ public class RoomPlayerListUIItem : MonoBehaviour
 
     public string playerName;
     public Role playerRole;
+    private PlayerRef playerRef;
 
-    public event Action<string> OnKickPlayer;
+    public event Action<PlayerRef> OnKickPlayer;
 
     //Sets information for player's name and role and if the kick button should be shown
 
-    public void SetInformation(string name, Role role, bool showKickButton)
+    public void SetInformation(string name, Role role, bool showKickButton, PlayerRef playerRef)
     {
+        this.playerRef = playerRef;
         playerName = name;
         playerRole = role;
 
@@ -29,6 +32,6 @@ public class RoomPlayerListUIItem : MonoBehaviour
 
     public void OnKickClicked()
     {
-        OnKickPlayer?.Invoke(playerName);
+        OnKickPlayer?.Invoke(playerRef);
     }
 }

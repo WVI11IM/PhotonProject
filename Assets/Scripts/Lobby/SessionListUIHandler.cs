@@ -10,16 +10,20 @@ public class SessionListUIHandler : MonoBehaviour
     [SerializeField] private GameObject sessionItemListPrefab;
     [SerializeField] private VerticalLayoutGroup verticalLayoutGroup;
 
-    [SerializeField] private GameObject createSessionPanel;
+    [SerializeField] private GameObject playerDetailsPanel;
     [SerializeField] private GameObject sessionListPanel;
+    [SerializeField] private GameObject createSessionPanel;
     [SerializeField] private Button createNewSessionButton;
+
+    private void Awake()
+    {
+        NetworkRunnerHandler.Instance.RegisterSessionListUI(this);
+    }
 
     private void Start()
     {
         if (createNewSessionButton != null)
             createNewSessionButton.onClick.AddListener(OpenCreateSessionPanel);
-
-        NetworkRunnerHandler.Instance.RegisterSessionListUI(this);
     }
 
     public void ClearList()
@@ -77,5 +81,12 @@ public class SessionListUIHandler : MonoBehaviour
             createSessionPanel.SetActive(false);
             sessionListPanel.SetActive(true);
         }
+    }
+
+    public void ReturnFromSessionLeave()
+    {
+        playerDetailsPanel.SetActive(false);
+        sessionListPanel.SetActive(true);
+        createSessionPanel.SetActive(false);
     }
 }
