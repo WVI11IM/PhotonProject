@@ -369,7 +369,7 @@ MonoBehaviour:
   playerNameText: {fileID: 3961843915137043694}
   kickButton: {fileID: 7199705883095897446}
   playerName: 
-  playerRole: 
+  playerRole: 0
 --- !u!1 &6686855984333609695
 GameObject:
   m_ObjectHideFlags: 0
@@ -490,7 +490,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 4860037549311758801}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1782405604763083000}
+        m_TargetAssemblyTypeName: RoomPlayerListUIItem, Assembly-CSharp
+        m_MethodName: OnKickClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &8806679775806275327
 GameObject:
   m_ObjectHideFlags: 0

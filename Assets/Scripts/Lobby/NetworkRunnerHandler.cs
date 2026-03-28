@@ -71,8 +71,13 @@ public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
     public void RegisterRoomUI(RoomPlayerListUIHandler ui)
     {
         roomUI = ui;
-        roomUI.UpdatePlayerList(connectedPlayers);
+        PlayerNetwork[] foundPlayers = FindObjectsByType<PlayerNetwork>(FindObjectsSortMode.None);
+        foreach(var p in foundPlayers)
+        {
+            OnPlayerInfoUpdated(p);
+        }
 
+        roomUI.UpdatePlayerList(connectedPlayers);
     }
 
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
@@ -136,19 +141,13 @@ public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
             SceneManager = networkRunner.GetComponent<NetworkSceneManagerDefault>()
         });
 
-        //Spawns networked player prefab for this client
-        if (playerNetworkPrefab != null)
-        {
-            networkRunner.Spawn(playerNetworkPrefab, Vector3.zero, Quaternion.identity, networkRunner.LocalPlayer);
-        }
-
         if (roomUI != null)
         {
             roomUI.SetRoomName(sessionInfo.Name);
         }
     }
 
-    //Called after role and name assingment
+    //Called after role and name assingment panel confirmation
     public async void StartBrowsingSessions()
     {
         if (networkRunner == null)
@@ -159,6 +158,7 @@ public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
             networkRunner.AddCallbacks(this);
         }
 
+        //Wait till runner is ready
         await networkRunner.JoinSessionLobby(SessionLobby.Shared);
 
         sessionListUI.OnLookingForGameSessions();
@@ -167,50 +167,25 @@ public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
     {
         PlayerRef playerRef = playerNetwork.Object.InputAuthority;
 
-        if (!connectedPlayers.ContainsKey(playerRef))
-        {
-            //Add new entry
-            connectedPlayers[playerRef] = new NetworkPlayerData(
-                playerNetwork.playerName,
-                playerNetwork.playerRole,
-                playerRef
-            );
-        }
-        else
-        {
-            //Update existing one
-            connectedPlayers[playerRef].playerName = playerNetwork.playerName;
-            connectedPlayers[playerRef].playerRole = playerNetwork.playerRole;
-        }
-        if (roomUI != null)
-        {
-            roomUI.UpdatePlayerList(connectedPlayers);
-        }
-    }
-    public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
-    {
-        if (!connectedPlayers.ContainsKey(player))
-        {
-            if (player == runner.LocalPlayer)
-            {
-                //For the local player, use name/role immediately
-                connectedPlayers[player] = new NetworkPlayerData(PlayerInfo.Name, PlayerInfo.Role, player);
-            }
-            else
-            {
-                //For others, use placeholder until their RPC updates (supposedly, because this is simply just not updating at all wtfff)
-                connectedPlayers[player] = new NetworkPlayerData("Loading...", Role.None, player);
-            }
-        }
+        //Update local dictionary with latest synced data by overwriting placeholder items
+        connectedPlayers[playerRef] = new NetworkPlayerData(
+            playerNetwork.playerName,
+            playerNetwork.playerRole,
+            playerRef
+        );
 
         if (roomUI != null)
         {
             roomUI.UpdatePlayerList(connectedPlayers);
         }
     }
+
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
     {
-        connectedPlayers.Remove(player);
+        if (connectedPlayers.ContainsKey(player))
+        {
+            connectedPlayers.Remove(player);
+        }
 
         if (roomUI != null)
         {
@@ -225,7 +200,9 @@ public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
 
         foreach (var player in connectedPlayers.Values)
         {
+            //
             //WHEN STARTING THE GAME, EACH ROLE WILL HAVE THEIR DESIGNATED GAMEPLAY SCENE
+            //
             if (player.playerRole == Role.Engineer)
             {
                 //networkRunner.SetPlayerScene(player.playerRef, SceneRef.FromIndex(ENGINEER_SCENE_INDEX));
@@ -242,7 +219,16 @@ public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
         if (!networkRunner.IsSharedModeMasterClient)
             return;
 
-        networkRunner.Disconnect(playerRef);
+        PlayerNetwork[] players = FindObjectsByType<PlayerNetwork>(FindObjectsSortMode.None);
+        foreach (var p in players)
+        {
+            if (p.Object.InputAuthority == playerRef)
+            {
+                Debug.Log($"SENDING KICK RPC TO: {p.playerName}");
+                p.RPC_KickPlayer();
+                return;
+            }
+        }
     }
 
     public async void LeaveRoom()
@@ -255,7 +241,15 @@ public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
             await networkRunner.Shutdown();
         }
 
-        SceneManager.LoadScene(LOBBY_SCENE_INDEX);
+        if (SceneManager.GetActiveScene().buildIndex == LOBBY_SCENE_INDEX)
+        {
+            StopAllCoroutines();
+            StartCoroutine(EnableLobbyUI());
+        }
+        else
+        {
+            SceneManager.LoadScene(LOBBY_SCENE_INDEX);
+        }
     }
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
@@ -264,65 +258,45 @@ public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
             StartCoroutine(EnableLobbyUI());
         }
     }
+
+    //Using this coroutine for when player leaves Room scene or gets kicked out of a session
+    //They get redirected to the sessions list and don't need to write down name and roles again
     private IEnumerator EnableLobbyUI()
     {
-        //Wait one frame
-        yield return null;
+        yield return new WaitForSeconds(0.2f);
 
         if (sessionListUI != null)
         {
             if (justLeftRoom)
             {
+                justLeftRoom = false;
+
                 sessionListUI.ReturnFromSessionLeave();
                 StartBrowsingSessions();
-                justLeftRoom = false;
             }
         }
     }
-    public void SetLocalPlayerInfo(string name, Role role)
+
+    public void OnSceneLoadDone(NetworkRunner runner)
     {
-        if (networkRunner == null || !networkRunner.IsRunning)
-            return;
-
-        PlayerRef local = networkRunner.LocalPlayer;
-
-        // Update own entry
-        connectedPlayers[local] = new NetworkPlayerData(name, role, local);
-
-        // Broadcast to all clients
-        UpdateAllClientsPlayerList();
-    }
-
-    private void UpdateAllClientsPlayerList()
-    {
-        // Convert dictionary to arrays for RPC
-        int count = connectedPlayers.Count;
-        var names = new string[count];
-        var roles = new Role[count];
-        var refs = new PlayerRef[count];
-
-        int i = 0;
-        foreach (var kvp in connectedPlayers)
+        //If the active scene is the Room scene, finds all PlayerNetwork objects to update player info
+        if (SceneManager.GetActiveScene().buildIndex == ROOM_SCENE_INDEX)
         {
-            names[i] = kvp.Value.playerName;
-            roles[i] = kvp.Value.playerRole;
-            refs[i] = kvp.Key;
-            i++;
-        }
+            if (runner.GetPlayerObject(runner.LocalPlayer) == null)
+            {
+                //Spawns the local player only after scene has already loaded
+                runner.Spawn(playerNetworkPrefab, Vector3.zero, Quaternion.identity, runner.LocalPlayer);
+            }
 
-        RPC_UpdatePlayerList(names, roles, refs);
+            PlayerNetwork[] others = FindObjectsByType<PlayerNetwork>(FindObjectsSortMode.None);
+            foreach (var p in others)
+            {
+                OnPlayerInfoUpdated(p);
+            }
+        }
     }
-
-    [Rpc(RpcSources.All, RpcTargets.All)]
-    void RPC_UpdatePlayerList(string[] names, Role[] roles, PlayerRef[] refs)
+    public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        connectedPlayers.Clear();
-
-        for (int i = 0; i < names.Length; i++)
-        {
-            connectedPlayers[refs[i]] = new NetworkPlayerData(names[i], roles[i], refs[i]);
-        }
-        roomUI?.UpdatePlayerList(connectedPlayers);
     }
 
     public void OnConnectedToServer(NetworkRunner runner)
@@ -377,10 +351,6 @@ public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
     }
 
     public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken)
-    {
-    }
-
-    public void OnSceneLoadDone(NetworkRunner runner)
     {
     }
 

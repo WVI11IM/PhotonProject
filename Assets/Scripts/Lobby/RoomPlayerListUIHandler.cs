@@ -21,8 +21,9 @@ public class RoomPlayerListUIHandler : MonoBehaviour
     }
     private void Start()
     {
-        //Updates room name
+        UpdatePlayerList(NetworkRunnerHandler.Instance.connectedPlayers);
 
+        //Updates room name
         if (NetworkRunnerHandler.Instance.Runner != null)
         {
             SetRoomName(NetworkRunnerHandler.Instance.Runner.SessionInfo.Name);
@@ -46,6 +47,9 @@ public class RoomPlayerListUIHandler : MonoBehaviour
     {
         foreach (Transform child in playerListLayout.transform)
             Destroy(child.gameObject);
+
+        //Count becomes 0 to ensure there aren't more player items than necessary
+        playerListLayout.transform.DetachChildren();
 
         bool hasPilot = false;
         bool hasEngineer = false;
