@@ -23,8 +23,12 @@ namespace Logitech {
         #endregion
         
         // Config
+        public static LogitechUtilConfig Config;
+        // TODO: Change all references to settings to reference config scriptableobject
         [Tooltip("Whether to call LogiSteeringInitialize on update when a wheel isn't present. This allows a wheel to connect and be detected without having to restart the game.")]
-        [SerializeField] private bool attemptWheelInitAtRuntime = true;
+        public static bool AttemptWheelInitAtRuntime = true;
+        public static bool UseKeyboardEmulation = true;
+        public static InputActionAsset KeyboardActions;
         
         #region InputSystem
 
@@ -39,7 +43,7 @@ namespace Logitech {
 
         #endregion
         
-        #region Properties
+        #region Properties // TODO: Override default values when wheel is missing, as without the wheel they default to 0.5
         /// <summary>
         /// Returns the wheel's rotation relative to its physical range of movement (-1.0 to 1.0)
         /// </summary>
@@ -47,7 +51,7 @@ namespace Logitech {
             // Steering wheel value
             (Instance == null ? 0 : Instance._joyStatus.lX / (float)Int16.MaxValue) +
             // Keyboard emulation value (if enabled, else zero)
-            (Config.useKeyboardEmulation ? _wheelBackingField : 0);
+            (UseKeyboardEmulation ? _wheelBackingField : 0);
         /// <summary>
         /// 
         /// Returns the number of revolutions the wheel has made (-1.5 to 1.5)
@@ -101,16 +105,16 @@ namespace Logitech {
                 Debug.LogError($"Unknown exception while initializing LogiSteering:\n{e}");
             }
 
-            _isActionWheel          = Config.keyboardActions.FindAction("Wheel");
-            _isActionAccelerator    = Config.keyboardActions.FindAction("Accelerator");
-            _isActionBrake          = Config.keyboardActions.FindAction("Brake");
-            _isActionClutch         = Config.keyboardActions.FindAction("Clutch");
+            _isActionWheel          = KeyboardActions.FindAction("Wheel");
+            _isActionAccelerator    = KeyboardActions.FindAction("Accelerator");
+            _isActionBrake          = KeyboardActions.FindAction("Brake");
+            _isActionClutch         = KeyboardActions.FindAction("Clutch");
 
         }
 
         // Update is called once per frame
         void Update() {
-            if (_config.useKeyboardEmulation) {
+            if (UseKeyboardEmulation) {
                 //TODO: Implement keyboard emulation using InputSystem actions.
             } else {
                 // If the previous exception was a DLL Not Found, halt Logi input detection outright
@@ -125,7 +129,7 @@ namespace Logitech {
                 } else {
 
                     // Attempt to initialize logi steering
-                    if (attemptWheelInitAtRuntime) {
+                    if (AttemptWheelInitAtRuntime) {
                         try {
                             if (LogitechGSDK.LogiSteeringInitialize(true))
                                 Debug.Log("Successfully initialized LogiSteering.");
@@ -172,53 +176,6 @@ namespace Logitech {
             // Logi API returns values between the min and max values for a 16-bit integer
             return (float)value / Int16.MaxValue / -2 + 0.5f;
         }
-
-        #region Config
-        private static LogitechUtilSettingsScriptableObject _config;
-
-        private static LogitechUtilSettingsScriptableObject Config {
-            get {
-                if (!_config)
-                    LoadConfig();
-
-                return _config;
-            }
-        }
-
-        private static void LoadConfig() {
-            _config = Resources.Load<LogitechUtilSettingsScriptableObject>("LogitechUtilConfig");
-
-            if (!_config)
-                throw new NullReferenceException(
-                    "LogitechUtilConfig asset could not be located. Make sure a LogitechUtilSettingsScriptableObject named \"LogitechUtilConfig\" exists in a Resources folder.");
-        }
-        #if UNITY_EDITOR
-        [MenuItem("Logitech Utility/Config/Enable Keyboard Emulation")]
-        #endif
-        private static void ConfigEnableKeyboard() {
-            try {
-                LoadConfig();
-            } catch (Exception e) {
-                Debug.LogError(e);
-                return;
-            }
-            _config.useKeyboardEmulation = true;
-            Debug.Log("Steering wheel emulation via keyboard input has been enabled.");
-        }
-        #if UNITY_EDITOR
-        [MenuItem("Logitech Utility/Config/Disable Keyboard Emulation")]
-        #endif
-        private static void ConfigDisableKeyboard() {
-            try {
-                LoadConfig();
-            } catch (Exception e) {
-                Debug.LogError(e);
-                return;
-            }
-            _config.useKeyboardEmulation = true;
-            Debug.Log("Steering wheel emulation via keyboard input has been disabled.");
-        }
-        #endregion
 
     }
 
