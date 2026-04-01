@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -10,6 +11,7 @@ namespace Logitech {
 
         private bool _showConfig;
         private bool _showValues;
+        private bool _showEmulatedValues;
         private LogitechUtilConfig Config => LogitechUtil.Config;
 
         [MenuItem("Window/Logitech Util")]
@@ -25,11 +27,11 @@ namespace Logitech {
             
         }
 
-        public void OnGUI() {
+        private void Update() {
+            Repaint();
+        }
 
-            // If no config is present 
-            if (LogitechUtil.Config == null) {
-            }
+        public void OnGUI() {
             
             // Config foldout group
             _showConfig = EditorGUILayout.Foldout(_showConfig, "Config");
@@ -72,6 +74,21 @@ namespace Logitech {
                 EditorGUILayout.Slider(LogitechUtil.AxisPedalBrake, 0, 1);
                 EditorGUILayout.LabelField("Accelerator");
                 EditorGUILayout.Slider(LogitechUtil.AxisPedalAccelerator, 0, 1);
+            }
+
+            // Visualize the current Logitech Wheel input values using sliders.
+            _showEmulatedValues = EditorGUILayout.Foldout(_showEmulatedValues, "Emulated Values");
+
+            if (_showEmulatedValues) {
+                EditorGUILayout.LabelField("Steering Wheel Axis:");
+                EditorGUILayout.Slider(LogitechUtil.EmulatedWheel, -1, 1);
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Clutch");
+                EditorGUILayout.Slider(LogitechUtil.EmulatedClutch, 0, 1);
+                EditorGUILayout.LabelField("Brake");
+                EditorGUILayout.Slider(LogitechUtil.EmulatedBrake, 0, 1);
+                EditorGUILayout.LabelField("Accelerator");
+                EditorGUILayout.Slider(LogitechUtil.EmulatedAccelerator, 0, 1);
             }
                 
             if (GUILayout.Button("Select Singleton"))

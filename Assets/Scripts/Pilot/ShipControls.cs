@@ -39,16 +39,14 @@ namespace Pilot {
             if (steeringMode == SteeringMode.CLASSIC_VELOCITY) {
                 // Steering rotation (apply torque according to steering wheel rotation)
                 _rb.AddTorque(LogitechUtil.WheelAxis * -steerForce * Time.fixedDeltaTime);
-                
-                // TODO: Make wrapper method in LogitechUtils for checking if wheel is present before setting spring force
                 LogitechUtil.SetSpringForce(0, 1, 1);
             } else {
                 float diff = (transform.rotation * Quaternion.Inverse(Quaternion.Euler(0, 0, 180 - LogitechUtil.WheelAxisDegrees))).eulerAngles.z -180;
                 Debug.Log($"Difference {diff}, wheel angle: {LogitechUtil.WheelAxisDegrees}");
                 _rb.AddTorque(
                     Mathf.Clamp(diff * acceleration, -max, max) * Time.fixedDeltaTime);
-                // TODO: Make wrapper method in LogitechUtils for checking if wheel is present before setting spring force
-                //LogitechGSDK.LogiPlaySpringForce(0, 0, 0, 0);
+                Debug.Log($"Setting rotation {LogitechUtil.WheelAxis * -steerForce * Time.fixedDeltaTime}");
+                LogitechUtil.SetSpringForce(0, 0, 0);
             }
 
             // Acceleration boost 

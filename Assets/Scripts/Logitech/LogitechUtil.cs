@@ -61,10 +61,10 @@ namespace Logitech {
         
         #region InputSystem
 
-        private static float _wheelBackingField;
-        private static float _acceleratorBackingField;
-        private static float _brakeBackingField;
-        private static float _clutchBackingField;
+        public static float EmulatedWheel;
+        public static float EmulatedAccelerator;
+        public static float EmulatedBrake;
+        public static float EmulatedClutch;
         private static InputAction _isActionWheel;
         private static InputAction _isActionAccelerator;
         private static InputAction _isActionBrake;
@@ -80,33 +80,33 @@ namespace Logitech {
             // Steering wheel value
             (Instance == null ? 0 : Instance._joyStatus.lX / (float)Int16.MaxValue) +
             // Keyboard emulation value (if enabled, else zero)
-            (Config.useKeyboardEmulation ? _wheelBackingField : 0);
+            (Config.useKeyboardEmulation ? EmulatedWheel : 0);
         /// <summary>
         /// 
         /// Returns the number of revolutions the wheel has made (-1.5 to 1.5)
         /// </summary>
         public static float WheelAxisRevolutions    => 
-            (Instance == null ? 0 : Instance._joyStatus.lX / (float)Int16.MaxValue / 1.25f);
+            (Instance == null ? 0 : WheelAxis / 1.25f);
         /// <summary>
         /// Returns the wheel's rotation in degrees (-540.0 to 540.0)
         /// </summary>
         public static float WheelAxisDegrees        => 
-            (Instance == null ? 0 : Instance._joyStatus.lX / (float)Int16.MaxValue * 450);
+            (Instance == null ? 0 : WheelAxis * 450);
         /// <summary>
         /// Returns how far the accelerator has been depressed, from 0 (resting position) to 1 (fully pressed).
         /// </summary>
         public static float AxisPedalAccelerator    => 
-            AbsoluteIntToPercent(Instance == null ? 0 : Instance._joyStatus.lY);
+            (Instance == null || !_sdkInitialized ? 0 : AbsoluteIntToPercent(Instance._joyStatus.lY)) + EmulatedAccelerator;
         /// <summary>
         /// Returns how far the brake has been depressed, from 0 (resting position) to 1 (fully pressed).
         /// </summary>
         public static float AxisPedalBrake          => 
-            AbsoluteIntToPercent(Instance == null ? 0 : Instance._joyStatus.lRz);
+            (Instance == null || !_sdkInitialized ? 0 : AbsoluteIntToPercent(Instance._joyStatus.lRz)) + EmulatedBrake;
         /// <summary>
         /// Returns how far the clutch has been depressed, from 0 (resting position) to 1 (fully pressed).
         /// </summary>
         public static float AxisPedalClutch         => 
-            AbsoluteIntToPercent(Instance._joyStatus.rglSlider == null ? 0 : Instance._joyStatus.rglSlider[0]);
+            (Instance._joyStatus.rglSlider == null || !_sdkInitialized ? 0 : AbsoluteIntToPercent(Instance._joyStatus.rglSlider[0])) + EmulatedClutch;
         #endregion
 
         #region Config
@@ -179,7 +179,7 @@ namespace Logitech {
         // Update is called once per frame
         void Update() {
             if (Config.useKeyboardEmulation) {
-                //TODO: Implement keyboard emulation using InputSystem actions.
+                EmulatedWheel = Mathf.Clamp(EmulatedWheel + _isActionWheel.ReadValue<float>() * Time.deltaTime, -1 ,1);
             } else {
                 // For the sake of simplicity, we'll only check if the first device is a steering wheel. A more robust system should detect if *any* connected devices is a steering wheel.
                 if (_sdkInitialized && LogitechGSDK.LogiIsDeviceConnected(0, LogitechGSDK.LOGI_DEVICE_TYPE_WHEEL)) {
@@ -247,10 +247,8 @@ namespace Logitech {
         /// <param name="saturation">The saturation of the spring force (refer to LogiSDK documentation)</param>
         /// <param name="coefficient">The coefficient of the spring force (refer to LogiSDK documentation)</param>
         public static void SetSpringForce(float angle, float saturation, float coefficient) {
-            if (!_sdkInitialized || LogitechGSDK.LogiIsDeviceConnected(0, LogitechGSDK.LOGI_DEVICE_TYPE_WHEEL)) {
-                Debug.LogWarning("Attempted to set spring force but LogiSteering SDK could not be initialized. Ignoring SetSpringForce method call...");
+            if (!_sdkInitialized || LogitechGSDK.LogiIsDeviceConnected(0, LogitechGSDK.LOGI_DEVICE_TYPE_WHEEL))
                 return;
-            }
             LogitechGSDK.LogiPlaySpringForce(
                 0, 
                 Mathf.RoundToInt(angle * 100), 
