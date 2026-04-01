@@ -180,6 +180,12 @@ namespace Logitech {
         void Update() {
             if (Config.useKeyboardEmulation) {
                 EmulatedWheel = Mathf.Clamp(EmulatedWheel + _isActionWheel.ReadValue<float>() * Time.deltaTime, -1 ,1);
+                EmulatedAccelerator -= Time.deltaTime;
+                EmulatedAccelerator = Mathf.Clamp01(EmulatedAccelerator + _isActionAccelerator.ReadValue<float>() * Time.deltaTime * 2);
+                EmulatedBrake -= Time.deltaTime;
+                EmulatedBrake = Mathf.Clamp01(EmulatedBrake + _isActionBrake.ReadValue<float>() * Time.deltaTime * 2);
+                EmulatedClutch -= Time.deltaTime;
+                EmulatedClutch = Mathf.Clamp01(EmulatedClutch + _isActionClutch.ReadValue<float>() * Time.deltaTime * 2);
             } else {
                 // For the sake of simplicity, we'll only check if the first device is a steering wheel. A more robust system should detect if *any* connected devices is a steering wheel.
                 if (_sdkInitialized && LogitechGSDK.LogiIsDeviceConnected(0, LogitechGSDK.LOGI_DEVICE_TYPE_WHEEL)) {
