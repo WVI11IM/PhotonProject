@@ -6,10 +6,10 @@ namespace Pilot {
 
     public enum ResourceType {
 
-        DEBRIS,
-        FUEL,
-        AMMO,
-        HULL
+        Debris,
+        Fuel,
+        Ammo,
+        Hull
 
     }
 

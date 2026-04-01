@@ -1,34 +1,63 @@
 using System;
-using Logitech;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 
 namespace Logitech {
 
+    #if UNITY_EDITOR
+    using UnityEditor;
+    public class LogitechEditorUtil : Editor {
+
+        public static LogitechUtilConfig CreateConfigFile() {
+            
+            // Try to find it in the resources folder 
+            if (Resources.Load(LogitechUtil.ConfigPath) is LogitechUtilConfig) {
+                Debug.LogWarning($"Attempted to create LogitechUtilConfig when one already existed at {LogitechUtil.ConfigPath}. Returning existing instance instead...");
+                return (LogitechUtilConfig)Resources.Load(LogitechUtil.ConfigName);
+            }
+            
+            var newConfig = CreateInstance<LogitechUtilConfig>();
+            
+            // Path has to start at "Assets"
+            AssetDatabase.CreateAsset(newConfig, LogitechUtil.ConfigPath);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            
+            return newConfig;
+            
+        }
+
+    }
+    #endif
+
     public class LogitechUtil : MonoBehaviour {
+
+        #region Constants and Readonlys
+        
+        public static readonly string ConfigName = "LogitechUtilConfig";
+        public static readonly string ConfigPath = $"Assets/Scripts/Logitech/Resources/{ConfigName}.asset";
+        public const string SingletonGameObjectName = "LogitechUtil Singleton";
+
+        #endregion
 
         #region Singleton Logic
         private static LogitechUtil _instance;
         public static LogitechUtil Instance {
             get {
                 if (!_instance) {
-                    _instance = new GameObject("LogitechUtil Singleton", typeof(LogitechUtil)).GetComponent<LogitechUtil>();
+                    // If no instance is present, first attempt to find an existing instance (useful to avoid countless instances being created when reloading scripts)
+                    if (GameObject.Find(SingletonGameObjectName) &&
+                        GameObject.Find(SingletonGameObjectName).GetComponent<LogitechUtil>())
+                        _instance = GameObject.Find(SingletonGameObjectName).GetComponent<LogitechUtil>();
+                    // If an instance was not found, create a new one
+                    if (!_instance)
+                        _instance = new GameObject(SingletonGameObjectName, typeof(LogitechUtil)).GetComponent<LogitechUtil>();
                     // _instance.gameObject.hideFlags = HideFlags.HideAndDontSave;
                 }
                 return _instance;
             }
         }
         #endregion
-        
-        // Config
-        public static LogitechUtilConfig Config;
-        // TODO: Change all references to settings to reference config scriptableobject
-        [Tooltip("Whether to call LogiSteeringInitialize on update when a wheel isn't present. This allows a wheel to connect and be detected without having to restart the game.")]
-        public static bool AttemptWheelInitAtRuntime = true;
-        public static bool UseKeyboardEmulation = true;
-        public static InputActionAsset KeyboardActions;
         
         #region InputSystem
 
@@ -51,7 +80,7 @@ namespace Logitech {
             // Steering wheel value
             (Instance == null ? 0 : Instance._joyStatus.lX / (float)Int16.MaxValue) +
             // Keyboard emulation value (if enabled, else zero)
-            (UseKeyboardEmulation ? _wheelBackingField : 0);
+            (Config.useKeyboardEmulation ? _wheelBackingField : 0);
         /// <summary>
         /// 
         /// Returns the number of revolutions the wheel has made (-1.5 to 1.5)
@@ -79,11 +108,43 @@ namespace Logitech {
         public static float AxisPedalClutch         => 
             AbsoluteIntToPercent(Instance._joyStatus.rglSlider == null ? 0 : Instance._joyStatus.rglSlider[0]);
         #endregion
-        
+
+        #region Config
+        private static LogitechUtilConfig _config;
+        public static LogitechUtilConfig Config {
+            get {
+                // If a config hasn't been cached
+                if (_config == null) {
+                    Debug.Log($"No config cached, loading resource with name {ConfigName}.");
+                    // Try to load a config from resources
+                    if (Resources.Load(ConfigName) is LogitechUtilConfig) {
+                        _config = (LogitechUtilConfig)Resources.Load(ConfigName);
+                        Debug.Log("Loaded config.");
+                        // If no such resource exists
+                    } else {
+                        // Create one, if in the editor
+                        #if UNITY_EDITOR
+                        Debug.LogWarning($"No config could be loaded, creating new config asset at {ConfigPath}");
+                        _config = LogitechEditorUtil.CreateConfigFile();
+                        // If not in the editor, print an error (code to create a resource is editor-exclusive, and cannot be included in builds)
+                        #else
+                        Debug.LogError("Could not find a config file. Was this build created without a config?");
+                        #endif
+                    }
+                    
+                }
+                return _config;
+            }
+            
+        }
+        #endregion
+
         // Logitech SDK
+        private static bool _sdkInitialized;
         private LogitechGSDK.DIJOYSTATE2ENGINES _joyStatus;
         private LogitechGSDK.LogiControllerPropertiesData _joyProps;
-
+        
+        // Error suppression/management (helps avoid flooding the console with the same error);
         private Exception _lastPrintedException;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -91,10 +152,12 @@ namespace Logitech {
             
             Debug.Log("Initializing LogiSteering...");
 
+            // [Attempt to] initialize Logitech Steering
             try {
-                if (LogitechGSDK.LogiSteeringInitialize(true))
+                if (LogitechGSDK.LogiSteeringInitialize(true)) {
                     Debug.Log("Successfully initialized LogiSteering.");
-                else
+                    _sdkInitialized = true;
+                } else
                     Debug.LogError("Failed to initialize LogiSteering!");
             } catch (DllNotFoundException e) {
                 // ignored
@@ -105,22 +168,21 @@ namespace Logitech {
                 Debug.LogError($"Unknown exception while initializing LogiSteering:\n{e}");
             }
 
-            _isActionWheel          = KeyboardActions.FindAction("Wheel");
-            _isActionAccelerator    = KeyboardActions.FindAction("Accelerator");
-            _isActionBrake          = KeyboardActions.FindAction("Brake");
-            _isActionClutch         = KeyboardActions.FindAction("Clutch");
+            // Cache actions on start to avoid expensive FindAction method calls during gameplay
+            _isActionWheel          = Config.keyboardActions.FindAction("Wheel");
+            _isActionAccelerator    = Config.keyboardActions.FindAction("Accelerator");
+            _isActionBrake          = Config.keyboardActions.FindAction("Brake");
+            _isActionClutch         = Config.keyboardActions.FindAction("Clutch");
 
         }
 
         // Update is called once per frame
         void Update() {
-            if (UseKeyboardEmulation) {
+            if (Config.useKeyboardEmulation) {
                 //TODO: Implement keyboard emulation using InputSystem actions.
             } else {
-                // If the previous exception was a DLL Not Found, halt Logi input detection outright
                 // For the sake of simplicity, we'll only check if the first device is a steering wheel. A more robust system should detect if *any* connected devices is a steering wheel.
-                if (_lastPrintedException is not DllNotFoundException &&
-                    LogitechGSDK.LogiIsDeviceConnected(0, LogitechGSDK.LOGI_DEVICE_TYPE_WHEEL)) {
+                if (_sdkInitialized && LogitechGSDK.LogiIsDeviceConnected(0, LogitechGSDK.LOGI_DEVICE_TYPE_WHEEL)) {
                     // Update Logi API
                     LogitechGSDK.LogiUpdate();
 
@@ -129,11 +191,12 @@ namespace Logitech {
                 } else {
 
                     // Attempt to initialize logi steering
-                    if (AttemptWheelInitAtRuntime) {
+                    if (Config.attemptWheelInitAtRuntime) {
                         try {
-                            if (LogitechGSDK.LogiSteeringInitialize(true))
+                            if (LogitechGSDK.LogiSteeringInitialize(true)) {
                                 Debug.Log("Successfully initialized LogiSteering.");
-                            else if (_lastPrintedException != null) {
+                                _sdkInitialized = true;
+                            } else if (_lastPrintedException != null) {
                                 Debug.LogError("Failed to initialize LogiSteering!");
                                 _lastPrintedException = null;
                             }
@@ -175,6 +238,25 @@ namespace Logitech {
         public static float AbsoluteIntToPercent(int value) {
             // Logi API returns values between the min and max values for a 16-bit integer
             return (float)value / Int16.MaxValue / -2 + 0.5f;
+        }
+
+        /// <summary>
+        /// Sets the steering wheel's spring force intensity and angle
+        /// </summary>
+        /// <param name="angle">The angle the wheel should spring to</param>
+        /// <param name="saturation">The saturation of the spring force (refer to LogiSDK documentation)</param>
+        /// <param name="coefficient">The coefficient of the spring force (refer to LogiSDK documentation)</param>
+        public static void SetSpringForce(float angle, float saturation, float coefficient) {
+            if (!_sdkInitialized || LogitechGSDK.LogiIsDeviceConnected(0, LogitechGSDK.LOGI_DEVICE_TYPE_WHEEL)) {
+                Debug.LogWarning("Attempted to set spring force but LogiSteering SDK could not be initialized. Ignoring SetSpringForce method call...");
+                return;
+            }
+            LogitechGSDK.LogiPlaySpringForce(
+                0, 
+                Mathf.RoundToInt(angle * 100), 
+                Mathf.RoundToInt(saturation * 100), 
+                Mathf.RoundToInt(coefficient * 100)
+            );
         }
 
     }

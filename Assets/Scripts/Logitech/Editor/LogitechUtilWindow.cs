@@ -4,20 +4,19 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 
-namespace Logitech.Editor {
+namespace Logitech {
 
-    public class LogitechUtilsWindow : EditorWindow {
-
-        private const string ConfigPath = "Assets/Scripts/Logitech/Resources/LogitechUtilsConfig.asset";
+    public class LogitechUtilWindow : EditorWindow {
 
         private bool _showConfig;
         private bool _showValues;
+        private LogitechUtilConfig Config => LogitechUtil.Config;
 
         [MenuItem("Window/Logitech Util")]
         public static void ShowMyEditor() {
             
             // This method is called when the user selects the menu item in the Editor.
-            EditorWindow wnd = GetWindow<LogitechUtilsWindow>();
+            EditorWindow wnd = GetWindow<LogitechUtilWindow>();
             wnd.titleContent = new GUIContent("Logitech Utils");
 
             // Limit size of the window.
@@ -28,40 +27,36 @@ namespace Logitech.Editor {
 
         public void OnGUI() {
 
-            // If no config is present in the static 
+            // If no config is present 
             if (LogitechUtil.Config == null) {
-                if (Resources.Load(ConfigPath) is LogitechUtilConfig) {
-                    LogitechUtil.Config = (LogitechUtilConfig)Resources.Load(ConfigPath);
-                } else {
-                    CreateConfigFile();
-                }
             }
-            
-            // Each editor window contains a root VisualElement object
-            VisualElement root = rootVisualElement;
             
             // Config foldout group
             _showConfig = EditorGUILayout.Foldout(_showConfig, "Config");
 
             if (_showConfig) {
-                LogitechUtil.AttemptWheelInitAtRuntime = EditorGUILayout.Toggle(
+                Config.attemptWheelInitAtRuntime = EditorGUILayout.Toggle(
                     new GUIContent("Re-init wheel at runtime",
                         "Whether to constantly re-attempt wheel initialization at runtime if initialization failed on start."),
-                    LogitechUtil.AttemptWheelInitAtRuntime);
+                    Config.attemptWheelInitAtRuntime);
 
-                LogitechUtil.UseKeyboardEmulation = EditorGUILayout.Toggle(
+                Config.useKeyboardEmulation = EditorGUILayout.Toggle(
                     new GUIContent("Emulate wheel with keyboard",
                         "Whether to use the below InputActions to control the game instead of a Logitech steering device."),
-                    LogitechUtil.UseKeyboardEmulation);
+                    Config.useKeyboardEmulation);
 
-                EditorGUI.BeginDisabledGroup(!LogitechUtil.UseKeyboardEmulation);
-
-                LogitechUtil.KeyboardActions = (InputActionAsset)EditorGUILayout.ObjectField(
+                EditorGUI.BeginDisabledGroup(!Config.useKeyboardEmulation);
+                
+                Config.keyboardActions = (InputActionAsset)EditorGUILayout.ObjectField(
                     new GUIContent("Wheel emulation actions",
                         "InputActions asset containing the standard input actions used to emulate a Logitech steering device."),
-                    LogitechUtil.KeyboardActions, typeof(InputActionAsset), false);
-
+                    Config.keyboardActions, typeof(InputActionAsset), false);
+                
                 EditorGUI.EndDisabledGroup();
+                
+                if (GUILayout.Button("Select Config File"))
+                    Selection.activeObject = Config;
+                
             }
 
             // Visualize the current Logitech Wheel input values using sliders.
@@ -78,22 +73,10 @@ namespace Logitech.Editor {
                 EditorGUILayout.LabelField("Accelerator");
                 EditorGUILayout.Slider(LogitechUtil.AxisPedalAccelerator, 0, 1);
             }
+                
+            if (GUILayout.Button("Select Singleton"))
+                Selection.activeObject = LogitechUtil.Instance;
 
-        }
-
-        public static void CreateConfigFile() {
-            // MyClass inherits from ScriptableObject base class
-            var newConfig = CreateInstance<LogitechUtilConfig>();
-
-            // Path has to start at "Assets"
-            AssetDatabase.CreateAsset(newConfig, ConfigPath);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            EditorUtility.FocusProjectWindow();
-            LogitechUtil.Config = newConfig;
-
-            // Unneeded, but will keep here for future reference as it's likely to be useful elsewhere in the future
-            // Selection.activeObject = newConfig;
         }
 
     }
