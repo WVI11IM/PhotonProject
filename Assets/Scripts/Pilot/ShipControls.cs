@@ -42,10 +42,8 @@ namespace Pilot {
                 LogitechUtil.SetSpringForce(0, 1, 1);
             } else {
                 float diff = (transform.rotation * Quaternion.Inverse(Quaternion.Euler(0, 0, 180 - LogitechUtil.WheelAxisDegrees))).eulerAngles.z -180;
-                Debug.Log($"Difference {diff}, wheel angle: {LogitechUtil.WheelAxisDegrees}");
                 _rb.AddTorque(
                     Mathf.Clamp(diff * acceleration, -max, max) * Time.fixedDeltaTime);
-                Debug.Log($"Setting rotation {LogitechUtil.WheelAxis * -steerForce * Time.fixedDeltaTime}");
                 LogitechUtil.SetSpringForce(0, 0, 0);
             }
 
