@@ -3,17 +3,23 @@ using Fusion.Sockets;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
+public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
 {
     public static NetworkRunnerHandler Instance;
 
     public NetworkRunner networkRunnerPrefab;
     public NetworkObject playerNetworkPrefab;
 
+    [SerializeField] private NetworkPrefabRef pilotPrefab;
+    [SerializeField] private NetworkPrefabRef engineerPrefab;
+
     public Dictionary<PlayerRef, NetworkPlayerData> connectedPlayers = new Dictionary<PlayerRef, NetworkPlayerData>();
+    //Tracks which player already has their gameplay object spawned
+    private Dictionary<PlayerRef, NetworkObject> playerToSpawnedObject = new Dictionary<PlayerRef, NetworkObject>();
 
     NetworkRunner networkRunner;
     public NetworkRunner Runner => networkRunner;
@@ -21,6 +27,7 @@ public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
     private SessionListUIHandler sessionListUI;
     private RoomPlayerListUIHandler roomUI;
     [HideInInspector] public bool justLeftRoom = false;
+    private bool gameplayObjectsSpawned = false;
 
 
     //Index of lobby scene
@@ -28,9 +35,7 @@ public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
     //Index of session room scene
     public const int ROOM_SCENE_INDEX = 1;
     //Index of engineer scene
-    public const int ENGINEER_SCENE_INDEX = 2;
-    //Index of pilot scene
-    public const int PILOT_SCENE_INDEX = 3;
+    public const int GAMEPLAY_SCENE_INDEX = 2;
 
     private void Awake()
     {
@@ -118,7 +123,8 @@ public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
         //Spawns networked player prefab for this client
         if (playerNetworkPrefab != null)
         {
-            networkRunner.Spawn(playerNetworkPrefab, Vector3.zero, Quaternion.identity, networkRunner.LocalPlayer);
+            var obj = networkRunner.Spawn(playerNetworkPrefab, Vector3.zero, Quaternion.identity, networkRunner.LocalPlayer);
+            networkRunner.SetPlayerObject(networkRunner.LocalPlayer, obj);
         }
 
         if (roomUI != null)
@@ -195,23 +201,11 @@ public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
 
     public void StartGame()
     {
-        if (!networkRunner.IsServer)
+        if (!networkRunner.IsSharedModeMasterClient)
             return;
-
-        foreach (var player in connectedPlayers.Values)
-        {
-            //
-            //WHEN STARTING THE GAME, EACH ROLE WILL HAVE THEIR DESIGNATED GAMEPLAY SCENE
-            //
-            if (player.playerRole == Role.Engineer)
-            {
-                //networkRunner.SetPlayerScene(player.playerRef, SceneRef.FromIndex(ENGINEER_SCENE_INDEX));
-            }
-            else if (player.playerRole == Role.Pilot)
-            {
-                //networkRunner.SetPlayerScene(player.playerRef, SceneRef.FromIndex(PILOT_SCENE_INDEX));
-            }
-        }
+        playerToSpawnedObject.Clear();
+        gameplayObjectsSpawned = false;
+        networkRunner.LoadScene(SceneRef.FromIndex(GAMEPLAY_SCENE_INDEX));
     }
 
     public void KickPlayer(PlayerRef playerRef)
@@ -253,6 +247,10 @@ public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
     }
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        //Re-register callbacks just in case
+        if (networkRunner != null)
+            networkRunner.AddCallbacks(this);
+
         if (scene.buildIndex == LOBBY_SCENE_INDEX)
         {
             StartCoroutine(EnableLobbyUI());
@@ -279,19 +277,105 @@ public class NetworkRunnerHandler : NetworkBehaviour, INetworkRunnerCallbacks
 
     public void OnSceneLoadDone(NetworkRunner runner)
     {
+        int currentScene = SceneManager.GetActiveScene().buildIndex;
+
         //If the active scene is the Room scene, finds all PlayerNetwork objects to update player info
-        if (SceneManager.GetActiveScene().buildIndex == ROOM_SCENE_INDEX)
+        if (currentScene == ROOM_SCENE_INDEX)
         {
             if (runner.GetPlayerObject(runner.LocalPlayer) == null)
             {
                 //Spawns the local player only after scene has already loaded
-                runner.Spawn(playerNetworkPrefab, Vector3.zero, Quaternion.identity, runner.LocalPlayer);
+                var obj = runner.Spawn(playerNetworkPrefab, Vector3.zero, Quaternion.identity, runner.LocalPlayer);
+                runner.SetPlayerObject(runner.LocalPlayer, obj);
             }
+
+            gameplayObjectsSpawned = false;
+
 
             PlayerNetwork[] others = FindObjectsByType<PlayerNetwork>(FindObjectsSortMode.None);
             foreach (var p in others)
             {
                 OnPlayerInfoUpdated(p);
+            }
+        }
+
+        if (currentScene == GAMEPLAY_SCENE_INDEX)
+        {
+            NetworkObject myLobbyObj = runner.GetPlayerObject(runner.LocalPlayer);
+            if (myLobbyObj != null)
+            {
+                myLobbyObj.GetComponent<PlayerNetwork>().IsReadyInGameplay = true;
+                Debug.Log("[Handshake] Lobby Object is ready for Gameplay spawning!");
+            }
+        }
+    }
+
+    private void Update()
+    {
+        //If the active scene is the Gameplay scene but the objects haven't been spawned yet...
+        if (SceneManager.GetActiveScene().buildIndex == GAMEPLAY_SCENE_INDEX && !gameplayObjectsSpawned)
+        {
+            if (networkRunner.IsSharedModeMasterClient)
+            {
+                SpawnGameplayObjects(networkRunner);
+            }
+        }
+    }
+
+    void SpawnGameplayObjects(NetworkRunner runner)
+    {
+        if (gameplayObjectsSpawned) return;
+        if (!runner.IsSharedModeMasterClient) return;
+        //Waits for all players to join in first
+        if (runner.ActivePlayers.Count() < 2) return;
+
+        foreach (PlayerRef playerRef in runner.ActivePlayers)
+        {
+            //SKIP if we already spawned an object for this specific player
+            if (playerToSpawnedObject.ContainsKey(playerRef)) continue;
+
+            NetworkObject lobbyGhost = runner.GetPlayerObject(playerRef);
+            if (lobbyGhost == null) return;
+
+            PlayerNetwork lobbyScript = lobbyGhost.GetComponent<PlayerNetwork>();
+            if (!lobbyScript.IsReadyInGameplay || lobbyScript.playerRole == Role.None) return;
+
+            NetworkPrefabRef selectedPrefab = (lobbyScript.playerRole == Role.Engineer) ? engineerPrefab : pilotPrefab;
+
+            //Spawn the Gameplay Version
+            NetworkObject spawnedObj = runner.Spawn(selectedPrefab, Vector3.zero, Quaternion.identity, playerRef, (runner, obj) =>
+            {
+                //Set authority and pass data from Lobby version to Gameplay version
+                obj.AssignInputAuthority(playerRef);
+
+                var newPlayerScript = obj.GetComponent<PlayerNetwork>();
+                newPlayerScript.playerName = lobbyScript.playerName;
+                newPlayerScript.playerRole = lobbyScript.playerRole;
+            });
+
+            playerToSpawnedObject[playerRef] = spawnedObj;
+
+            //Sets the new pilot/engineer as the official playerobject for the PlayerRef
+            runner.SetPlayerObject(playerRef, spawnedObj);
+
+            //Despawns the "Ghost" that was only used for the Room
+            runner.Despawn(lobbyGhost);
+
+            Debug.Log($"Handover complete for {playerRef}: Ghost despawned, Body assigned.");
+        }
+
+        if (playerToSpawnedObject.Count == 2)
+        {
+            gameplayObjectsSpawned = true;
+            Debug.Log("SUCCESS: All roles spawned and assigned.");
+
+            //Find the objects in dictionary to link
+            NetworkObject pilotObj = playerToSpawnedObject.Values.FirstOrDefault(x => x.GetComponent<PilotItemSender>() != null);
+            NetworkObject engineerObj = playerToSpawnedObject.Values.FirstOrDefault(x => x.GetComponent<PilotItemReceiver>() != null);
+
+            if (pilotObj != null && engineerObj != null)
+            {
+                pilotObj.GetComponent<PilotItemSender>().AssignEngineer(engineerObj);
             }
         }
     }

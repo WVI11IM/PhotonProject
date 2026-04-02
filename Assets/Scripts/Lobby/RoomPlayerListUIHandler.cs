@@ -21,13 +21,16 @@ public class RoomPlayerListUIHandler : MonoBehaviour
     }
     private void Start()
     {
-        UpdatePlayerList(NetworkRunnerHandler.Instance.connectedPlayers);
+        //Do it again since Awake may have called it too early
+        NetworkRunnerHandler.Instance.RegisterRoomUI(this);
 
         //Updates room name
         if (NetworkRunnerHandler.Instance.Runner != null)
         {
             SetRoomName(NetworkRunnerHandler.Instance.Runner.SessionInfo.Name);
         }
+
+        UpdatePlayerList(NetworkRunnerHandler.Instance.connectedPlayers);
     }
 
     public void SetRoomName(string roomName)
@@ -57,6 +60,14 @@ public class RoomPlayerListUIHandler : MonoBehaviour
         foreach (var kvp in players)
         {
             var data = kvp.Value;
+            string displayName = data.playerName;
+            Role displayRole = data.playerRole;
+
+            if (string.IsNullOrEmpty(displayName))
+            {
+                displayName = "Syncing...";
+                displayRole = Role.None;
+            }
 
             if (data.playerRole == Role.Pilot)
                 hasPilot = true;
@@ -68,11 +79,11 @@ public class RoomPlayerListUIHandler : MonoBehaviour
 
             var item = Instantiate(playerItemPrefab, playerListLayout.transform).GetComponent<RoomPlayerListUIItem>();
             item.OnKickPlayer += OnKickPlayer;
-            item.SetInformation(data.playerName, data.playerRole, isMasterClient && !isSelf, kvp.Key);
+            item.SetInformation(displayName, displayRole, isMasterClient && !isSelf, kvp.Key);
         }
 
         //The game can only start if room has a pilot and an engineer
-        startGameButton.interactable = hasPilot && hasEngineer;
+        startGameButton.interactable = hasPilot && hasEngineer && NetworkRunnerHandler.Instance.Runner.IsSharedModeMasterClient;
 
     }
 

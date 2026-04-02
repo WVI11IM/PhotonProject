@@ -47,7 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
   SortKey: 3483920931
   ObjectInterest: 1
-  Flags: 262145
+  Flags: 786433
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 8688826473984216587}
@@ -66,3 +66,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerNetwork
   _playerName: 
   _playerRole: 0
+  _IsReadyInGameplay:
+    _value: 0

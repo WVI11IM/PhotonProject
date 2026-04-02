@@ -129,7 +129,6 @@ GameObject:
   m_Component:
   - component: {fileID: 146415550}
   - component: {fileID: 146415549}
-  - component: {fileID: 146415551}
   m_Layer: 0
   m_Name: NetworkRunnerHandler
   m_TagString: Untagged
@@ -151,6 +150,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NetworkRunnerHandler
   networkRunnerPrefab: {fileID: 193636578387969167, guid: a884817ae002ba846940b2534dc19e4a, type: 3}
   playerNetworkPrefab: {fileID: 8300206820886154708, guid: ed83ab7e3026e2f489188b953dad0dff, type: 3}
+  pilotPrefab:
+    RawGuidValue: daa9df4b1aa53604b94159566077552b
+  engineerPrefab:
+    RawGuidValue: abbee210008f49d4280de8e5d72e23a4
   justLeftRoom: 0
 --- !u!4 &146415550
 Transform:
@@ -167,25 +170,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &146415551
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 146415548}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
-  SortKey: 1125698702
-  ObjectInterest: 1
-  Flags: 262145
-  NestedObjects: []
-  NetworkedBehaviours:
-  - {fileID: 146415549}
-  ForceRemoteRenderTimeframe: 0
 --- !u!1 &175995220
 GameObject:
   m_ObjectHideFlags: 0
