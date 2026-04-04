@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed627fd2bd1a4b77a8eee94452cb98f5, type: 3}
   m_Name: LogitechUtilConfig
   m_EditorClassIdentifier: Assembly-CSharp::Logitech.LogitechUtilConfig
-  attemptWheelInitAtRuntime: 1
+  attemptWheelInitAtRuntime: 0
   useKeyboardEmulation: 1
-  keyboardActions: {fileID: 0}
+  keyboardActions: {fileID: -944628639613478452, guid: 14557d1322b754ba099f65e385ae6aea, type: 3}

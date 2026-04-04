@@ -59,6 +59,12 @@ namespace Logitech {
                 if (GUILayout.Button("Select Config File"))
                     Selection.activeObject = Config;
                 
+                if (GUILayout.Button("Save")) {
+                    EditorUtility.SetDirty(Config);
+                    AssetDatabase.SaveAssets();
+                    AssetDatabase.Refresh();
+                }
+                
             }
 
             // Visualize the current Logitech Wheel input values using sliders.
