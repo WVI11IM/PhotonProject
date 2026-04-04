@@ -7,6 +7,7 @@ namespace Enemies.Strider {
     public class StriderCore : MonoBehaviour {
 
         private Rigidbody2D _rb;
+        private Transform _ship;
 
         [SerializeField] private float rotateForce;
         [SerializeField] private float rotateForceMax;
@@ -18,8 +19,6 @@ namespace Enemies.Strider {
                 return _rb;
             }
         }
-
-        private Transform _ship;
         public Transform Ship {
             get {
                 if (_ship == null)
@@ -27,12 +26,6 @@ namespace Enemies.Strider {
                 return _ship;
             }
         }
-
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start() { }
-
-        // Update is called once per frame
-        void Update() { }
         
         public void TorqueToFace(Vector2 target) {
             float rot = -Mathf.Rad2Deg * Mathf.Atan2(target.y, target.x) + 90;
