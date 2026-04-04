@@ -7,12 +7,26 @@ public class PlayerNetwork : NetworkBehaviour
 {
     [Networked] public string playerName { get; set; }
     [Networked] public Role playerRole { get; set; }
-    [Networked] public NetworkBool IsReadyInGameplay { get; set; }
+
+    [Networked, OnChangedRender(nameof(OnGameplayActiveChanged))]
+    public NetworkBool IsGameplayActive { get; set; }
+
+    [Header("Visibility References")]
+    public GameObject[] gameplayVisuals;
+    public MonoBehaviour[] gameplayScripts;
 
     private ChangeDetector _changeDetector;
 
     public override void Spawned()
     {
+        base.Spawned();
+
+        //When player is spawned, it attempts to link their role script to the other player's
+        if (Object.HasStateAuthority)
+        {
+            NetworkRunnerHandler.Instance.TryLinkPlayerSystems();
+        }
+
         //Ensures this object persists from Room to Gameplay scene
         Runner.MakeDontDestroyOnLoad(gameObject);
 
@@ -23,26 +37,17 @@ public class PlayerNetwork : NetworkBehaviour
         {
             playerName = PlayerInfo.Name;
             playerRole = PlayerInfo.Role;
-
-            UpdateLocalUI();
         }
-        else
+
+        UpdateState();
+        UpdateLocalUI();
+
+        if (!Object.HasInputAuthority)
         {
             StartCoroutine(InitialSyncDelay());
         }
-
-        // Check if it's in the gameplay scene. if not, keep everything hidden/disabled
-        int currentScene = SceneManager.GetActiveScene().buildIndex;
-        if (currentScene == NetworkRunnerHandler.GAMEPLAY_SCENE_INDEX)
-        {
-            if (Object.HasStateAuthority)
-                IsReadyInGameplay = false;
-        }
-        else
-        {
-            SetGameplayUIActive(false);
-        }
     }
+
     IEnumerator InitialSyncDelay()
     {
         yield return null;
@@ -57,11 +62,34 @@ public class PlayerNetwork : NetworkBehaviour
     }
     public override void Render()
     {
-        if (_changeDetector == null) return;
-
-        foreach (var change in _changeDetector.DetectChanges(this, true))
+        if (_changeDetector != null)
         {
-            UpdateLocalUI();
+            foreach (var change in _changeDetector.DetectChanges(this, true))
+            {
+                if (change == nameof(playerName) || change == nameof(playerRole))
+                {
+                    UpdateLocalUI();
+                }
+            }
+        }
+    }
+    public void OnGameplayActiveChanged()
+    {
+        UpdateState();
+    }
+
+    private void UpdateState()
+    {
+        //Toggle visuals
+        foreach (var visual in gameplayVisuals)
+        {
+            if (visual != null) visual.SetActive(IsGameplayActive);
+        }
+
+        //Toggle scripts
+        foreach (var script in gameplayScripts)
+        {
+            if (script != null) script.enabled = IsGameplayActive;
         }
     }
 
@@ -80,13 +108,9 @@ public class PlayerNetwork : NetworkBehaviour
         NetworkRunnerHandler.Instance.LeaveRoom();
     }
 
-    private void SetGameplayUIActive(bool isActive)
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_SetGameplayActive()
     {
-        NetworkedUI uiController = GetComponent<NetworkedUI>();
-
-        if (uiController != null)
-        {
-            uiController.SetUIState(isActive);
-        }
+        IsGameplayActive = true;
     }
 }

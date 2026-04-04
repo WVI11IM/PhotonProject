@@ -9,23 +9,28 @@ public class EngineerItemSender : NetworkBehaviour
     {
         if (!Object.HasInputAuthority) return;
 
-        RPC_SendItemToPilot(item, sector);
-    }
-
-    //RPC for engineer to send item and sector back to pilot
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void RPC_SendItemToPilot(ItemType item, Sector sector)
-    {
         if (PilotObject == null)
-        {
-            Debug.LogWarning("Pilot not assigned");
             return;
-        }
 
         var receiver = PilotObject.GetComponent<PilotItemReceiver>();
         if (receiver != null)
         {
-            receiver.ReceiveItem(item, sector);
+            receiver.RPC_RequestReceiveItem(item, sector);
         }
+    }
+
+    public void AssignPilot(NetworkObject pilot)
+    {
+        if (Object.HasStateAuthority)
+        {
+            PilotObject = pilot;
+            Debug.Log("Pilot assigned to engineer");
+        }
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.InputAuthority)]
+    public void RPC_AssignPilot(NetworkObject pilot)
+    {
+        AssignPilot(pilot);
     }
 }

@@ -11,15 +11,12 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
 {
     public static NetworkRunnerHandler Instance;
 
+    [Header("Prefabs & References")]
     public NetworkRunner networkRunnerPrefab;
-    public NetworkObject playerNetworkPrefab;
-
     [SerializeField] private NetworkPrefabRef pilotPrefab;
     [SerializeField] private NetworkPrefabRef engineerPrefab;
 
     public Dictionary<PlayerRef, NetworkPlayerData> connectedPlayers = new Dictionary<PlayerRef, NetworkPlayerData>();
-    //Tracks which player already has their gameplay object spawned
-    private Dictionary<PlayerRef, NetworkObject> playerToSpawnedObject = new Dictionary<PlayerRef, NetworkObject>();
 
     NetworkRunner networkRunner;
     public NetworkRunner Runner => networkRunner;
@@ -27,7 +24,7 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
     private SessionListUIHandler sessionListUI;
     private RoomPlayerListUIHandler roomUI;
     [HideInInspector] public bool justLeftRoom = false;
-    private bool gameplayObjectsSpawned = false;
+    private bool systemsLinked = false;
 
 
     //Index of lobby scene
@@ -47,6 +44,7 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
         else if (Instance != this)
         {
             Destroy(gameObject);
+            return;
         }
 
         networkRunner = FindFirstObjectByType<NetworkRunner>();
@@ -59,20 +57,10 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
         //Register this script to receive Fusion events
         networkRunner.AddCallbacks(this);
     }
-    private void OnEnable()
-    {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
+    private void OnEnable() => SceneManager.sceneLoaded += OnSceneLoaded;
+    private void OnDisable() => SceneManager.sceneLoaded -= OnSceneLoaded;
 
-    private void OnDisable()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
-    public void RegisterSessionListUI(SessionListUIHandler ui)
-    {
-        sessionListUI = ui;
-    }
+    public void RegisterSessionListUI(SessionListUIHandler ui) => sessionListUI = ui;
     public void RegisterRoomUI(RoomPlayerListUIHandler ui)
     {
         roomUI = ui;
@@ -85,24 +73,13 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
         roomUI.UpdatePlayerList(connectedPlayers);
     }
 
-    public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
+    //Called after role and name assingment panel confirmation
+    public async void StartBrowsingSessions()
     {
-        if (sessionListUI != null)
-        {
-            sessionListUI.ClearList();
+        //Wait till runner is ready
+        await networkRunner.JoinSessionLobby(SessionLobby.Shared);
 
-            //If there are no sessions...
-            if (sessionList.Count == 0)
-            {
-                sessionListUI.OnNoSessionsFound();
-                return;
-            }
-
-            foreach (var session in sessionList)
-            {
-                sessionListUI.AddToList(session);
-            }
-        }
+        sessionListUI.OnLookingForGameSessions();
     }
 
     //Creates a session with given name and redirects player to Room scene
@@ -119,13 +96,6 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
             SceneManager = networkRunner.GetComponent<NetworkSceneManagerDefault>(),
             PlayerCount = 2
         });
-
-        //Spawns networked player prefab for this client
-        if (playerNetworkPrefab != null)
-        {
-            var obj = networkRunner.Spawn(playerNetworkPrefab, Vector3.zero, Quaternion.identity, networkRunner.LocalPlayer);
-            networkRunner.SetPlayerObject(networkRunner.LocalPlayer, obj);
-        }
 
         if (roomUI != null)
         {
@@ -152,23 +122,151 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
             roomUI.SetRoomName(sessionInfo.Name);
         }
     }
-
-    //Called after role and name assingment panel confirmation
-    public async void StartBrowsingSessions()
+    public void LeaveRoom()
     {
-        if (networkRunner == null)
+        connectedPlayers.Clear();
+        justLeftRoom = true;
+        if (networkRunner != null && networkRunner.IsRunning)
         {
-            networkRunner = Instantiate(networkRunnerPrefab);
-            networkRunner.name = "Network Runner";
-            DontDestroyOnLoad(networkRunner.gameObject);
+            networkRunner.Shutdown();
+        }
+
+        if (SceneManager.GetActiveScene().buildIndex != LOBBY_SCENE_INDEX)
+        {
+            SceneManager.LoadScene(LOBBY_SCENE_INDEX);
+        }
+        systemsLinked = false;
+    }
+
+    public void KickPlayer(PlayerRef playerRef)
+    {
+        if (!networkRunner.IsSharedModeMasterClient)
+            return;
+
+        NetworkObject obj = Runner.GetPlayerObject(playerRef);
+
+        if (obj == null)
+            return;
+
+        PlayerNetwork player = obj.GetComponent<PlayerNetwork>();
+
+        Debug.Log($"SENDING KICK RPC TO: {player.playerName}");
+
+        player.RPC_KickPlayer();
+    }
+
+    public async void StartGame()
+    {
+        if (!networkRunner.IsSharedModeMasterClient)
+            return;
+
+        PlayerNetwork[] allPlayers = FindObjectsByType<PlayerNetwork>(FindObjectsSortMode.None);
+        foreach (var p in allPlayers)
+        {
+            p.RPC_SetGameplayActive();
+        }
+        await System.Threading.Tasks.Task.Delay(200);
+
+        await networkRunner.LoadScene(SceneRef.FromIndex(GAMEPLAY_SCENE_INDEX));
+    }
+
+    //Coroutine that waits for both Pilot and Engineer to exist in scene
+    //in order to link them together through RPCs
+    private IEnumerator LinkSystemsRoutine()
+    {
+        PlayerRef pilotRef = default;
+        PlayerRef engineerRef = default;
+
+        foreach (var kvp in connectedPlayers)
+        {
+            if (kvp.Value.playerRole == Role.Pilot)
+                pilotRef = kvp.Key;
+
+            if (kvp.Value.playerRole == Role.Engineer)
+                engineerRef = kvp.Key;
+        }
+
+        NetworkObject pilotObj = null;
+        NetworkObject engineerObj = null;
+
+        while (pilotObj == null || engineerObj == null)
+        {
+            pilotObj = Runner.GetPlayerObject(pilotRef);
+            engineerObj = Runner.GetPlayerObject(engineerRef);
+
+            yield return null;
+        }
+
+        var pilotSender = pilotObj.GetComponentInChildren<PilotItemSender>(true);
+        var engineerSender = engineerObj.GetComponentInChildren<EngineerItemSender>(true);
+
+        if (pilotSender != null)
+        {
+            pilotSender.RPC_AssignEngineer(engineerObj);
+        }
+
+        if (engineerSender != null)
+        {
+            engineerSender.RPC_AssignPilot(pilotObj);
+        }
+
+        Debug.Log(">>Pilot and Engineer systems linked!!!<<");
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        //Re-register callbacks just in case
+        if (networkRunner != null)
+        {
+            networkRunner.RemoveCallbacks(this);
             networkRunner.AddCallbacks(this);
         }
 
-        //Wait till runner is ready
-        await networkRunner.JoinSessionLobby(SessionLobby.Shared);
+        if (scene.buildIndex == LOBBY_SCENE_INDEX) StartCoroutine(EnableLobbyUI());
 
-        sessionListUI.OnLookingForGameSessions();
+        OnSceneLoadDone(networkRunner);
     }
+
+    public void OnSceneLoadDone(NetworkRunner runner)
+    {
+        if (Instance != this) return;
+
+        int currentScene = SceneManager.GetActiveScene().buildIndex;
+
+        if (currentScene == ROOM_SCENE_INDEX)
+        {
+            StartCoroutine(DelayedSpawnRoutine(runner));
+        }
+    }
+
+    private IEnumerator DelayedSpawnRoutine(NetworkRunner runner)
+    {
+        yield return new WaitUntil(() => runner.IsRunning);
+
+        if (runner.GetPlayerObject(runner.LocalPlayer) == null)
+        {
+            NetworkPrefabRef prefabToSpawn = PlayerInfo.Role == Role.Engineer ? engineerPrefab : pilotPrefab;
+            var obj = runner.Spawn(prefabToSpawn, Vector3.zero, Quaternion.identity, runner.LocalPlayer);
+
+            runner.SetPlayerObject(runner.LocalPlayer, obj);
+        }
+    }
+
+    //Coroutine for when player leaves Room scene or gets kicked out of a session
+    //They get redirected to the sessions list and don't need to write down name and roles again
+    private IEnumerator EnableLobbyUI()
+    {
+        yield return new WaitForSeconds(0.2f);
+
+        if (sessionListUI != null && justLeftRoom)
+        {
+            justLeftRoom = false;
+
+            sessionListUI.ReturnFromSessionLeave();
+            StartBrowsingSessions();
+        }
+    }
+
     public void OnPlayerInfoUpdated(PlayerNetwork playerNetwork)
     {
         PlayerRef playerRef = playerNetwork.Object.InputAuthority;
@@ -183,6 +281,31 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
         if (roomUI != null)
         {
             roomUI.UpdatePlayerList(connectedPlayers);
+        }
+
+        if (connectedPlayers.Count == 2 &&
+            Runner.IsSharedModeMasterClient &&
+            !systemsLinked)
+        {
+            systemsLinked = true;
+            StartCoroutine(LinkSystemsRoutine());
+        }
+    }
+
+    public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
+    {
+        if (sessionListUI == null) return;
+        sessionListUI.ClearList();
+
+        if (sessionList.Count == 0)
+        {
+            sessionListUI.OnNoSessionsFound();
+            return;
+        }
+
+        foreach (var session in sessionList)
+        {
+            sessionListUI.AddToList(session);
         }
     }
 
@@ -199,246 +322,50 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
         }
     }
 
-    public void StartGame()
-    {
-        if (!networkRunner.IsSharedModeMasterClient)
-            return;
-        playerToSpawnedObject.Clear();
-        gameplayObjectsSpawned = false;
-        networkRunner.LoadScene(SceneRef.FromIndex(GAMEPLAY_SCENE_INDEX));
-    }
-
-    public void KickPlayer(PlayerRef playerRef)
-    {
-        if (!networkRunner.IsSharedModeMasterClient)
-            return;
-
-        PlayerNetwork[] players = FindObjectsByType<PlayerNetwork>(FindObjectsSortMode.None);
-        foreach (var p in players)
-        {
-            if (p.Object.InputAuthority == playerRef)
-            {
-                Debug.Log($"SENDING KICK RPC TO: {p.playerName}");
-                p.RPC_KickPlayer();
-                return;
-            }
-        }
-    }
-
-    public async void LeaveRoom()
-    {
-        connectedPlayers.Clear();
-        justLeftRoom = true;
-
-        if (networkRunner != null && networkRunner.IsRunning)
-        {
-            await networkRunner.Shutdown();
-        }
-
-        if (SceneManager.GetActiveScene().buildIndex == LOBBY_SCENE_INDEX)
-        {
-            StopAllCoroutines();
-            StartCoroutine(EnableLobbyUI());
-        }
-        else
-        {
-            SceneManager.LoadScene(LOBBY_SCENE_INDEX);
-        }
-    }
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        //Re-register callbacks just in case
-        if (networkRunner != null)
-            networkRunner.AddCallbacks(this);
-
-        if (scene.buildIndex == LOBBY_SCENE_INDEX)
-        {
-            StartCoroutine(EnableLobbyUI());
-        }
-    }
-
-    //Using this coroutine for when player leaves Room scene or gets kicked out of a session
-    //They get redirected to the sessions list and don't need to write down name and roles again
-    private IEnumerator EnableLobbyUI()
-    {
-        yield return new WaitForSeconds(0.2f);
-
-        if (sessionListUI != null)
-        {
-            if (justLeftRoom)
-            {
-                justLeftRoom = false;
-
-                sessionListUI.ReturnFromSessionLeave();
-                StartBrowsingSessions();
-            }
-        }
-    }
-
-    public void OnSceneLoadDone(NetworkRunner runner)
-    {
-        int currentScene = SceneManager.GetActiveScene().buildIndex;
-
-        //If the active scene is the Room scene, finds all PlayerNetwork objects to update player info
-        if (currentScene == ROOM_SCENE_INDEX)
-        {
-            if (runner.GetPlayerObject(runner.LocalPlayer) == null)
-            {
-                //Spawns the local player only after scene has already loaded
-                var obj = runner.Spawn(playerNetworkPrefab, Vector3.zero, Quaternion.identity, runner.LocalPlayer);
-                runner.SetPlayerObject(runner.LocalPlayer, obj);
-            }
-
-            gameplayObjectsSpawned = false;
-
-
-            PlayerNetwork[] others = FindObjectsByType<PlayerNetwork>(FindObjectsSortMode.None);
-            foreach (var p in others)
-            {
-                OnPlayerInfoUpdated(p);
-            }
-        }
-
-        if (currentScene == GAMEPLAY_SCENE_INDEX)
-        {
-            NetworkObject myLobbyObj = runner.GetPlayerObject(runner.LocalPlayer);
-            if (myLobbyObj != null)
-            {
-                myLobbyObj.GetComponent<PlayerNetwork>().IsReadyInGameplay = true;
-                Debug.Log("[Handshake] Lobby Object is ready for Gameplay spawning!");
-            }
-        }
-    }
-
-    private void Update()
-    {
-        //If the active scene is the Gameplay scene but the objects haven't been spawned yet...
-        if (SceneManager.GetActiveScene().buildIndex == GAMEPLAY_SCENE_INDEX && !gameplayObjectsSpawned)
-        {
-            if (networkRunner.IsSharedModeMasterClient)
-            {
-                SpawnGameplayObjects(networkRunner);
-            }
-        }
-    }
-
-    void SpawnGameplayObjects(NetworkRunner runner)
-    {
-        if (gameplayObjectsSpawned) return;
-        if (!runner.IsSharedModeMasterClient) return;
-        //Waits for all players to join in first
-        if (runner.ActivePlayers.Count() < 2) return;
-
-        foreach (PlayerRef playerRef in runner.ActivePlayers)
-        {
-            //SKIP if we already spawned an object for this specific player
-            if (playerToSpawnedObject.ContainsKey(playerRef)) continue;
-
-            NetworkObject lobbyGhost = runner.GetPlayerObject(playerRef);
-            if (lobbyGhost == null) return;
-
-            PlayerNetwork lobbyScript = lobbyGhost.GetComponent<PlayerNetwork>();
-            if (!lobbyScript.IsReadyInGameplay || lobbyScript.playerRole == Role.None) return;
-
-            NetworkPrefabRef selectedPrefab = (lobbyScript.playerRole == Role.Engineer) ? engineerPrefab : pilotPrefab;
-
-            //Spawn the Gameplay Version
-            NetworkObject spawnedObj = runner.Spawn(selectedPrefab, Vector3.zero, Quaternion.identity, playerRef, (runner, obj) =>
-            {
-                //Set authority and pass data from Lobby version to Gameplay version
-                obj.AssignInputAuthority(playerRef);
-
-                var newPlayerScript = obj.GetComponent<PlayerNetwork>();
-                newPlayerScript.playerName = lobbyScript.playerName;
-                newPlayerScript.playerRole = lobbyScript.playerRole;
-            });
-
-            playerToSpawnedObject[playerRef] = spawnedObj;
-
-            //Sets the new pilot/engineer as the official playerobject for the PlayerRef
-            runner.SetPlayerObject(playerRef, spawnedObj);
-
-            //Despawns the "Ghost" that was only used for the Room
-            runner.Despawn(lobbyGhost);
-
-            Debug.Log($"Handover complete for {playerRef}: Ghost despawned, Body assigned.");
-        }
-
-        if (playerToSpawnedObject.Count == 2)
-        {
-            gameplayObjectsSpawned = true;
-            Debug.Log("SUCCESS: All roles spawned and assigned.");
-
-            //Find the objects in dictionary to link
-            NetworkObject pilotObj = playerToSpawnedObject.Values.FirstOrDefault(x => x.GetComponent<PilotItemSender>() != null);
-            NetworkObject engineerObj = playerToSpawnedObject.Values.FirstOrDefault(x => x.GetComponent<PilotItemReceiver>() != null);
-
-            if (pilotObj != null && engineerObj != null)
-            {
-                pilotObj.GetComponent<PilotItemSender>().AssignEngineer(engineerObj);
-            }
-        }
-    }
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
+        if (Runner.IsSharedModeMasterClient)
+            TryLinkPlayerSystems();
+    }
+    public void TryLinkPlayerSystems()
+    {
+        if (!Runner.IsSharedModeMasterClient) return;
+
+        NetworkObject pilotObj = null;
+        NetworkObject engineerObj = null;
+
+        PlayerRef pilotRef = connectedPlayers.FirstOrDefault(x => x.Value.playerRole == Role.Pilot).Key;
+        PlayerRef engineerRef = connectedPlayers.FirstOrDefault(x => x.Value.playerRole == Role.Engineer).Key;
+
+        if (!pilotRef.Equals(default))
+        {
+            pilotObj = Runner.GetPlayerObject(pilotRef);
+        }
+        if (!engineerRef.Equals(default))
+        {
+            engineerObj = Runner.GetPlayerObject(engineerRef);
+        }
+
+        if (pilotObj != null && engineerObj != null)
+        {
+            pilotObj.GetComponentInChildren<PilotItemSender>(true)?.RPC_AssignEngineer(engineerObj);
+            engineerObj.GetComponentInChildren<EngineerItemSender>(true)?.RPC_AssignPilot(pilotObj);
+        }
     }
 
-    public void OnConnectedToServer(NetworkRunner runner)
-    {
-    }
-    public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
-    {
-    }
-
-    public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
-    {
-    }
-
-    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
-    {
-    }
-
-    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
-    {
-    }
-
-    public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token)
-    {
-    }
-
-    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
-    {
-    }
-
-    public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message)
-    {
-    }
-
-    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data)
-    {
-    }
-
-    public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress)
-    {
-    }
-
-    public void OnInput(NetworkRunner runner, NetworkInput input)
-    {
-    }
-
-    public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input)
-    {
-    }
-
-    public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data)
-    {
-    }
-
-    public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken)
-    {
-    }
-
-    public void OnSceneLoadStart(NetworkRunner runner)
-    {
-    }
+    public void OnConnectedToServer(NetworkRunner runner) { }
+    public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
+    public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
+    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
+    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { }
+    public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
+    public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
+    public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }
+    public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data) { }
+    public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress) { }
+    public void OnInput(NetworkRunner runner, NetworkInput input) { }
+    public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
+    public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data) { }
+    public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) { }
+    public void OnSceneLoadStart(NetworkRunner runner) { }
 }

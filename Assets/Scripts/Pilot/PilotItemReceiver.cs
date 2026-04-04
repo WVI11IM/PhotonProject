@@ -11,21 +11,11 @@ public class PilotItemReceiver : NetworkBehaviour
     [SerializeField] private AudioSource audioWrong;
     [SerializeField] private AudioSource audioEject;
 
-    public override void Spawned()
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_RequestReceiveItem(ItemType item, Sector sector)
     {
-        //When spawned, looks for the engineer in order to assign itself to their EngineerItemSender component
-        GameObject engineerGO = GameObject.FindWithTag("Engineer");
-        if (engineerGO != null)
-        {
-            EngineerItemSender sender = engineerGO.GetComponent<EngineerItemSender>();
-            if (sender != null && sender.Object.HasStateAuthority)
-            {
-                sender.PilotObject = this.Object;
-                Debug.Log("Pilot registered itself to engineer");
-            }
-        }
+        ReceiveItem(item, sector);
     }
-
     //Receives the item and sector from the engineer
     public void ReceiveItem(ItemType item, Sector sector)
     {
@@ -62,7 +52,7 @@ public class PilotItemReceiver : NetworkBehaviour
         }
 
         //For now, it only sends a message to the pilot informing them about the deployed items
-        RPC_UpdateShipStatus(message);
+        UpdateShipStatusUI(message);
     }
 
     //Checks if item and sector match
@@ -96,8 +86,7 @@ public class PilotItemReceiver : NetworkBehaviour
         return "Tank Up!";
     }
 
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void RPC_UpdateShipStatus(string message)
+    private void UpdateShipStatusUI(string message)
     {
         if (shipStatusText != null)
         {

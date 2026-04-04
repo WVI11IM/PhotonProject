@@ -19,15 +19,11 @@ public class PilotItemSender : NetworkBehaviour
 
         ItemType itemToSend = (ItemType)itemIndex;
 
-        RPC_SendItem(EngineerObject, itemToSend);
-    }
-
-    //RPC for pilot to try and send an item to the engineer
-    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
-    private void RPC_SendItem(NetworkObject engineer, ItemType item)
-    {
-        var chm = engineer.GetComponent<CargoHoldManager>();
-        chm.TryAddToQueue(item);
+        var engineerCargo = EngineerObject.GetComponent<CargoHoldManager>();
+        if (engineerCargo != null)
+        {
+            engineerCargo.RPC_RequestAddItem(itemToSend);
+        }
     }
 
     //Method for assigning engineer to pilot on spawn
@@ -38,5 +34,11 @@ public class PilotItemSender : NetworkBehaviour
             EngineerObject = engineer;
             Debug.Log("Engineer assigned to pilot");
         }
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.InputAuthority)]
+    public void RPC_AssignEngineer(NetworkObject engineer)
+    {
+        AssignEngineer(engineer);
     }
 }
