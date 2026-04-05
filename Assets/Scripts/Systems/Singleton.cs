@@ -1,9 +1,9 @@
 using UnityEngine;
 
-namespace System {
+namespace Systems {
     public abstract class Singleton<T> : MonoBehaviour where T : UnityEngine.Object {
-        private T _instance;
-        public T Instance {
+        private static T _instance;
+        public static T Instance {
             get {
                 if (_instance == null)
                     _instance = FindAnyObjectByType<T>();
