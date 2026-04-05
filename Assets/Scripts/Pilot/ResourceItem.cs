@@ -4,18 +4,9 @@ using UnityEngine;
 
 namespace Pilot {
 
-    public enum ResourceType {
-
-        Debris,
-        Fuel,
-        Ammo,
-        Hull
-
-    }
-
     public class ResourceItem : MonoBehaviour {
 
-        [SerializeField] private ResourceType type;
+        [SerializeField] private ItemType type;
         [SerializeField] private GameObject cube;
         [SerializeField] private TextMeshPro label;
 

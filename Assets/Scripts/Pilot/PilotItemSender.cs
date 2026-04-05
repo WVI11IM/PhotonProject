@@ -7,7 +7,8 @@ public class PilotItemSender : NetworkBehaviour
     [Networked] public NetworkObject EngineerObject { get; private set; }
 
     //Method for pilot's UI buttons (at least for testing at the moment)
-    public void SendItem(int itemIndex)
+    public void SendItem(int itemIndex) => SendItem((ItemType)itemIndex);
+    public void SendItem(ItemType itemType)
     {
         if (!Object.HasInputAuthority) return;
 
@@ -17,9 +18,7 @@ public class PilotItemSender : NetworkBehaviour
             return;
         }
 
-        ItemType itemToSend = (ItemType)itemIndex;
-
-        RPC_SendItem(EngineerObject, itemToSend);
+        RPC_SendItem(EngineerObject, itemType);
     }
 
     //RPC for pilot to try and send an item to the engineer

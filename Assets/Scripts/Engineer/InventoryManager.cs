@@ -2,14 +2,6 @@ using Fusion;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum ItemType
-{
-    Metal = 0,
-    Ammo = 1,
-    Fuel = 2,
-    Debris = 3
-}
-
 public enum Sector
 {
     Armor = 0,
