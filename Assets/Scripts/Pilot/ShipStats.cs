@@ -1,13 +1,15 @@
+using System;
+using Systems;
 using UnityEngine;
 
 namespace Pilot {
     
-    public class ShipStats : MonoBehaviour {
+    public class ShipStats : Singleton<ShipStats> {
 
         [Header("Resources (Max)")]
         [field:SerializeField] public float  ResMaxFuel { get; private set; }
         [field:SerializeField] public int    ResMaxAmmo { get; private set; }
-        [field:SerializeField] public int    ResMaxHp   { get; private set; } 
+        [field:SerializeField] public int    ResMaxHp   { get; private set; }
         
         [Header("Resources (Current)")]
         [field:SerializeField] public float  ResFuel    { get; private set; }
@@ -20,9 +22,6 @@ namespace Pilot {
             ResAmmo = ResMaxAmmo;
             ResHp = ResMaxHp;
         }
-
-        // Update is called once per frame
-        void Update() { }
 
         /// <summary>
         /// Subtract <paramref name="amount"/> from the ammo count, returning however much ammo exceeds the current ammo count.

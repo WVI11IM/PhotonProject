@@ -26,6 +26,7 @@ namespace Pilot {
         }
 
         private void PickUp() {
+            PilotItemSender.Instance.SendItem(type);
             Destroy(gameObject);
             // TODO: Integrate Engineer system here
         }

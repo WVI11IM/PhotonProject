@@ -1,12 +1,12 @@
-using System;
 using System.Collections.Generic;
 using Logitech;
+using Systems;
 using UnityEditor;
 using UnityEngine;
 
 namespace Pilot {
 
-    public class ShipTractor : MonoBehaviour {
+    public class ShipTractor : Singleton<ShipTractor> {
         
         /// <summary>
         /// Contains items in range, without filtering for angle range
@@ -43,10 +43,6 @@ namespace Pilot {
                     coll.attachedRigidbody.AddForce(delta.normalized * DistanceFalloff(delta.magnitude, RangeDistanceFalloff.Evaluate(Factor), pullForce));
                 }
             }
-        }
-
-        private void GrabItem(ItemType type) {
-            
         }
 
         /// <summary>
