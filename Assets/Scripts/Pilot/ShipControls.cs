@@ -39,20 +39,19 @@ namespace Pilot {
             if (steeringMode == SteeringMode.CLASSIC_VELOCITY) {
                 // Steering rotation (apply torque according to steering wheel rotation)
                 _rb.AddTorque(LogitechUtil.WheelAxis * -steerForce * Time.fixedDeltaTime);
-                LogitechGSDK.LogiPlaySpringForce(0, 0, 100, 100);
+                LogitechUtil.SetSpringForce(0, 1, 1);
             } else {
                 float diff = (transform.rotation * Quaternion.Inverse(Quaternion.Euler(0, 0, 180 - LogitechUtil.WheelAxisDegrees))).eulerAngles.z -180;
-                Debug.Log($"Difference {diff}, wheel angle: {LogitechUtil.WheelAxisDegrees}");
                 _rb.AddTorque(
                     Mathf.Clamp(diff * acceleration, -max, max) * Time.fixedDeltaTime);
-                LogitechGSDK.LogiPlaySpringForce(0, 0, 0, 0);
+                LogitechUtil.SetSpringForce(0, 0, 0);
             }
 
             // Acceleration boost 
             _rb.AddForce(
                 LogitechUtil.AxisPedalAccelerator * // Use the accelerator...
                 boostForce * // ...plus the force multiplier...
-                boostForceFuelFalloff.Evaluate(stats.ResFuel / stats.ResMaxFuel) * // ...with falloff if fuel is low...
+                boostForceFuelFalloff.Evaluate(stats.Fuel.Current / stats.Fuel.Max) * // ...with falloff if fuel is low...
                 Time.fixedDeltaTime * // ...plus the delta time adjustment
                 transform.up); // ...to move in the direction the gun is pointing.
         }
