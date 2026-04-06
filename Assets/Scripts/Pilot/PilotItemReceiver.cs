@@ -2,6 +2,7 @@ using Fusion;
 using Systems;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Pilot {
 
@@ -23,6 +24,7 @@ namespace Pilot {
         [SerializeField] private AudioSource audioRight;
         [SerializeField] private AudioSource audioWrong;
         [SerializeField] private AudioSource audioEject;
+        private string _status;
 
         public override void Spawned()
         {
@@ -55,72 +57,25 @@ namespace Pilot {
                 message = $"Item {item} ejected safely";
             }
             //But if an item is placed inside a wrong sector, it gives a penalty to the ship
-            else if (!IsItemValidForSector(item, sector))
+            else if ((int)item != (int)sector)
             {
                 audioWrong.Play();
                 message = $"Wrong item deployed! {item} to {sector}! Penalty!";
-                TriggerPenalty();
+                ShipStats.Instance.IncorrectSectorPenalty((ItemType)sector);
             }
             else
             {
                 //The item was deployed correctly
-                switch (item)
-                {
-                    case ItemType.Metal: message = AddToArmor(); break;
-                    case ItemType.Ammo: message = AddToWeapon(); break;
-                    case ItemType.Fuel: message = AddToTank(); break;
-                    case ItemType.Debris: message = "Item Debris ejected safely!"; break;
-                    default: break;
-                }
+                ShipStats.Instance.ReplenishResource(item);
             }
 
             //For now, it only sends a message to the pilot informing them about the deployed items
             RPC_UpdateShipStatus(message);
         }
 
-        //Checks if item and sector match
-        private bool IsItemValidForSector(ItemType item, Sector sector)
-        {
-            switch (sector)
-            {
-                case Sector.Armor: return item == ItemType.Metal;
-                case Sector.Weapon: return item == ItemType.Ammo;
-                case Sector.Tank: return item == ItemType.Fuel;
-                case Sector.Eject: return true;
-                default: return false;
-            }
-        }
-
-        string AddToArmor()
-        {
-            audioRight.Play();
-            return "Armor Up!";
-        }
-
-        string AddToWeapon()
-        {
-            audioRight.Play();
-            return "Weapon Up!";
-        }
-
-        string AddToTank()
-        {
-            audioRight.Play();
-            return "Tank Up!";
-        }
-
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_UpdateShipStatus(string message)
-        {
-            if (shipStatusText != null)
-            {
-                shipStatusText.text = "SHIP STATUS:\n" + message;
-            }
-        }
-
-        private void TriggerPenalty()
-        {
-            //Reduce health, armor or something else
+        private void RPC_UpdateShipStatus(string message) {
+            _status = message;
         }
     }
 

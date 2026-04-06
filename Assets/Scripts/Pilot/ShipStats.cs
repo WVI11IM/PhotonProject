@@ -1,37 +1,73 @@
 using System;
 using Systems;
+using Unity.Collections;
 using UnityEngine;
+using Object = System.Object;
 
 namespace Pilot {
+
+    [Serializable]
+    public class ShipResource {
+        
+        [field:ReadOnly]
+        [field:SerializeField] public float  Current { get; private set; }
+        [field:SerializeField] public float  Max { get; private set; }
+        [field:SerializeField] public float  RateReplenish { get; private set; }
+        [field:SerializeField] public float  RatePenalty { get; private set; }
+
+        public ShipResource() {
+            Current = Max;
+        }
+        public ShipResource(float max, float replenish, float penalty) {
+            Current = max;
+            Max = max;
+        }
+
+        public void Replenish() {
+            Current = Mathf.Clamp(Current + RateReplenish, 0, Max);
+        }
+        public void Penalty() {
+            Current = Mathf.Clamp(Current - RatePenalty, 0, Max);
+        }
+
+        public void Consume(float amount) {
+            if (amount < 0) {
+                Debug.LogError($"Cannot consume negative amount({amount}), use Replenish() if you meant to add, or a positive value that will be subtracted!");
+                return;
+            }
+            Current = Mathf.Clamp(Current - amount, 0, Max);
+        }
+        
+        // Override cast to float, so value can be accessed directly.
+        public static explicit operator float(ShipResource stat) => stat.Current;
+
+    }
     
     public class ShipStats : Singleton<ShipStats> {
 
-        [Header("Resources (Max)")]
-        [field:SerializeField] public float  ResMaxFuel { get; private set; }
-        [field:SerializeField] public int    ResMaxAmmo { get; private set; }
-        [field:SerializeField] public int    ResMaxHp   { get; private set; }
-        
-        [Header("Resources (Current)")]
-        [field:SerializeField] public float  ResFuel    { get; private set; }
-        [field:SerializeField] public int    ResAmmo    { get; private set; }
-        [field:SerializeField] public int    ResHp      { get; private set; }
+        [Header("Resources")]
+        [field:SerializeField] public ShipResource  Fuel { get; private set; }
+        [field:SerializeField] public ShipResource  Ammo { get; private set; }
+        [field:SerializeField] public ShipResource  Hull   { get; private set; }
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start() {
-            ResFuel = ResMaxFuel;
-            ResAmmo = ResMaxAmmo;
-            ResHp = ResMaxHp;
+            Fuel  = new ShipResource();
+            Ammo  = new ShipResource();
+            Hull  = new ShipResource();
         }
 
-        /// <summary>
-        /// Subtract <paramref name="amount"/> from the ammo count, returning however much ammo exceeds the current ammo count.
-        /// </summary>
-        /// <param name="amount">How much ammo to consume.</param>
-        /// <returns>The difference between <paramref name="amount"/> and the current ammo count, if less than zero.</returns>
-        public int ConsumeAmmo(int amount) {
-            int diff = -Mathf.Min(0, ResAmmo - amount);
-            ResAmmo = Mathf.Max(0, ResAmmo - amount);
-            return diff;
+        public void ReplenishResource(ItemType resource) => TypeToResource(resource).Replenish();
+        public void IncorrectSectorPenalty(ItemType resource) => TypeToResource(resource).Penalty();
+
+        public ShipResource TypeToResource(ItemType type) {
+            // This could be done better, but it's good enough for now...
+            switch (type) {
+                case ItemType.Ammo:     return Ammo;
+                case ItemType.Fuel:     return Fuel;
+                case ItemType.Metal:    return Hull;
+                default: return null;
+            }
         }
 
     }

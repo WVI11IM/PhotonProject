@@ -340,6 +340,9 @@ MonoBehaviour:
   audioRight: {fileID: 0}
   audioWrong: {fileID: 0}
   audioEject: {fileID: 0}
+  itemDeployed:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &321303227
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1108,12 +1111,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4fe0091937b1d4571a5de76ab1172ac1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pilot.ShipStats
-  <ResMaxFuel>k__BackingField: 100
-  <ResMaxAmmo>k__BackingField: 100
-  <ResMaxHp>k__BackingField: 100
-  <ResFuel>k__BackingField: 0
-  <ResAmmo>k__BackingField: 0
-  <ResHp>k__BackingField: 0
+  <Fuel>k__BackingField:
+    <Current>k__BackingField: 0
+    <Max>k__BackingField: 100
+    <RateReplenish>k__BackingField: 0
+    <RatePenalty>k__BackingField: 0
+  <Ammo>k__BackingField:
+    <Current>k__BackingField: 0
+    <Max>k__BackingField: 100
+    <RateReplenish>k__BackingField: 0
+    <RatePenalty>k__BackingField: 0
+  <Hull>k__BackingField:
+    <Current>k__BackingField: 0
+    <Max>k__BackingField: 100
+    <RateReplenish>k__BackingField: 0
+    <RatePenalty>k__BackingField: 0
 --- !u!1 &1441998820
 GameObject:
   m_ObjectHideFlags: 0
