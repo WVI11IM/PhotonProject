@@ -197,7 +197,7 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
             yield return null;
         }
 
-        var pilotSender = pilotObj.GetComponentInChildren<PilotItemSender>(true);
+        var pilotSender = pilotObj.GetComponentInChildren<Pilot.PilotItemSender>(true);
         var engineerSender = engineerObj.GetComponentInChildren<EngineerItemSender>(true);
 
         if (pilotSender != null)
@@ -348,7 +348,7 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
 
         if (pilotObj != null && engineerObj != null)
         {
-            pilotObj.GetComponentInChildren<PilotItemSender>(true)?.RPC_AssignEngineer(engineerObj);
+            pilotObj.GetComponentInChildren<Pilot.PilotItemSender>(true)?.RPC_AssignEngineer(engineerObj);
             engineerObj.GetComponentInChildren<EngineerItemSender>(true)?.RPC_AssignPilot(pilotObj);
         }
     }
