@@ -30,12 +30,13 @@ public partial class LeechAttachAction : LeechAction {
         switch (attach_mode.Value) {
             case AttachActionMode.AttachTo:
                 Leech.transform.parent = attach_target.Value;
-
+                Leech.Rb.bodyType = RigidbodyType2D.Kinematic;
                 //TODO: Make the leech point at the target
                 break;
 
             case AttachActionMode.DetachFrom:
                 Leech.transform.parent = null;
+                Leech.Rb.bodyType = RigidbodyType2D.Dynamic;
                 break;
         }
 
