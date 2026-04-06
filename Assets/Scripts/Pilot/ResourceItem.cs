@@ -25,10 +25,18 @@ namespace Pilot {
                 PickUp();
         }
 
-        private void PickUp() {
-            PilotItemSender.Instance.SendItem(type);
+        public void LeechConsume() {
             Destroy(gameObject);
-            // TODO: Integrate Engineer system here
+        }
+
+        private void PickUp() {
+            try {
+                PilotItemSender.Instance.SendItem(type);
+            }
+            catch {
+                // ignored
+            }
+            Destroy(gameObject);
         }
 
     }
