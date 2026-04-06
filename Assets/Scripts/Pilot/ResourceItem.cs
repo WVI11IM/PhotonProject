@@ -4,18 +4,9 @@ using UnityEngine;
 
 namespace Pilot {
 
-    public enum ResourceType {
-
-        DEBRIS,
-        FUEL,
-        AMMO,
-        HULL
-
-    }
-
     public class ResourceItem : MonoBehaviour {
 
-        [SerializeField] private ResourceType type;
+        [SerializeField] private ItemType type;
         [SerializeField] private GameObject cube;
         [SerializeField] private TextMeshPro label;
 
@@ -34,9 +25,18 @@ namespace Pilot {
                 PickUp();
         }
 
-        private void PickUp() {
+        public void LeechConsume() {
             Destroy(gameObject);
-            // TODO: Integrate Engineer system here
+        }
+
+        private void PickUp() {
+            try {
+                PilotItemSender.Instance.SendItem(type);
+            }
+            catch {
+                // ignored
+            }
+            Destroy(gameObject);
         }
 
     }

@@ -1,101 +1,81 @@
 using Fusion;
+using Systems;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 
-public class PilotItemReceiver : NetworkBehaviour
-{
-    [SerializeField] private TMP_Text shipStatusText;
+namespace Pilot {
 
-    [Header("Audio Sources")]
-    [SerializeField] private AudioSource audioRight;
-    [SerializeField] private AudioSource audioWrong;
-    [SerializeField] private AudioSource audioEject;
-
-    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
-    public void RPC_RequestReceiveItem(ItemType item, Sector sector)
+    public class PilotItemReceiver : NetworkBehaviour
     {
-        ReceiveItem(item, sector);
-    }
-    //Receives the item and sector from the engineer
-    public void ReceiveItem(ItemType item, Sector sector)
-    {
-        if (!Object.HasStateAuthority) return;
-
-        Debug.Log($"Pilot received deployed item: {item}");
-
-        string message = "";
-
-        //If it's the eject sector, no penalty is applied
-        if (sector == Sector.Eject)
-        {
-            audioEject.Play();
-            message = $"Item {item} ejected safely";
-        }
-        //But if an item is placed inside a wrong sector, it gives a penalty to the ship
-        else if (!IsItemValidForSector(item, sector))
-        {
-            audioWrong.Play();
-            message = $"Wrong item deployed! {item} to {sector}! Penalty!";
-            TriggerPenalty();
-        }
-        else
-        {
-            //The item was deployed correctly
-            switch (item)
-            {
-                case ItemType.Metal: message = AddToArmor(); break;
-                case ItemType.Ammo: message = AddToWeapon(); break;
-                case ItemType.Fuel: message = AddToTank(); break;
-                case ItemType.Debris: message = "Item Debris ejected safely!"; break;
-                default: break;
+        
+        private static PilotItemReceiver _instance;
+        public static PilotItemReceiver Instance {
+            get {
+                if (_instance == null)
+                    _instance = FindAnyObjectByType<PilotItemReceiver>();
+                return _instance;
             }
         }
+        
+        [SerializeField] private TMP_Text shipStatusText;
 
-        //For now, it only sends a message to the pilot informing them about the deployed items
-        UpdateShipStatusUI(message);
-    }
+        [Header("Audio Sources")]
+        [SerializeField] private AudioSource audioRight;
+        [SerializeField] private AudioSource audioWrong;
+        [SerializeField] private AudioSource audioEject;
+        private string _status;
 
-    //Checks if item and sector match
-    private bool IsItemValidForSector(ItemType item, Sector sector)
-    {
-        switch (sector)
+        public override void Spawned()
         {
-            case Sector.Armor: return item == ItemType.Metal;
-            case Sector.Weapon: return item == ItemType.Ammo;
-            case Sector.Tank: return item == ItemType.Fuel;
-            case Sector.Eject: return true;
-            default: return false;
+            //When spawned, looks for the engineer in order to assign itself to their EngineerItemSender component
+            GameObject engineerGO = GameObject.FindWithTag("Engineer");
+            if (engineerGO != null)
+            {
+                EngineerItemSender sender = engineerGO.GetComponent<EngineerItemSender>();
+                if (sender != null && sender.Object.HasStateAuthority)
+                {
+                    sender.PilotObject = this.Object;
+                    Debug.Log("Pilot registered itself to engineer");
+                }
+            }
         }
-    }
-
-    string AddToArmor()
-    {
-        audioRight.Play();
-        return "Armor Up!";
-    }
-
-    string AddToWeapon()
-    {
-        audioRight.Play();
-        return "Weapon Up!";
-    }
-
-    string AddToTank()
-    {
-        audioRight.Play();
-        return "Tank Up!";
-    }
-
-    private void UpdateShipStatusUI(string message)
-    {
-        if (shipStatusText != null)
+        //Receives the item and sector from the engineer
+        public void ReceiveItem(ItemType item, Sector sector)
         {
-            shipStatusText.text = "SHIP STATUS:\n" + message;
-        }
-    }
+            if (!Object.HasStateAuthority) return;
 
-    private void TriggerPenalty()
-    {
-        //Reduce health, armor or something else
+            Debug.Log($"Pilot received deployed item: {item}");
+
+            string message = "";
+
+            //If it's the eject sector, no penalty is applied
+            if (sector == Sector.Eject)
+            {
+                audioEject.Play();
+                message = $"Item {item} ejected safely";
+            }
+            //But if an item is placed inside a wrong sector, it gives a penalty to the ship
+            else if ((int)item != (int)sector)
+            {
+                audioWrong.Play();
+                message = $"Wrong item deployed! {item} to {sector}! Penalty!";
+                ShipStats.Instance.IncorrectSectorPenalty((ItemType)sector);
+            }
+            else
+            {
+                //The item was deployed correctly
+                ShipStats.Instance.ReplenishResource(item);
+            }
+
+            //For now, it only sends a message to the pilot informing them about the deployed items
+            RPC_UpdateShipStatus(message);
+        }
+
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RPC_UpdateShipStatus(string message)
+        {
+            _status = message;
+        }
     }
 }
