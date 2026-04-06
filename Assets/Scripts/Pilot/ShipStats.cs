@@ -15,14 +15,13 @@ namespace Pilot {
         [field:SerializeField] public float  RateReplenish { get; private set; }
         [field:SerializeField] public float  RatePenalty { get; private set; }
 
-        public ShipResource() {
-            Current = Max;
-        }
         public ShipResource(float max, float replenish, float penalty) {
             Current = max;
             Max = max;
         }
-
+        public void Initialize() {
+            Current = Max;
+        }
         public void Replenish() {
             Current = Mathf.Clamp(Current + RateReplenish, 0, Max);
         }
@@ -52,9 +51,9 @@ namespace Pilot {
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start() {
-            Fuel  = new ShipResource();
-            Ammo  = new ShipResource();
-            Hull  = new ShipResource();
+            Fuel.Initialize();
+            Ammo.Initialize();
+            Hull.Initialize();
         }
 
         public void ReplenishResource(ItemType resource) => TypeToResource(resource).Replenish();
