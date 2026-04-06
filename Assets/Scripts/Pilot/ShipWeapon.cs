@@ -11,7 +11,6 @@ namespace Pilot {
         [SerializeField] private Bullet bulletPrefab;
         [SerializeField] private Transform bulletSpawnPoint;
 
-        // TODO: consider using pedal press depth to control stream/burst modes?
         [Header("Config")]
         [SerializeField] private float spreadAngle = 10;
         [Range (0, 1)]
