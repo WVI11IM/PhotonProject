@@ -18,7 +18,7 @@ public class CargoHoldManager : NetworkBehaviour
     {
         TryAddToQueue(item);
     }
-
+    
     //Checks queue capacity for adding an item
     public void TryAddToQueue(ItemType itemType)
     {
@@ -90,5 +90,41 @@ public class CargoHoldManager : NetworkBehaviour
             queueString += "empty";
         }
         return queueString;
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_RequestLeechItem()
+    {
+        TryLeechFromQueue();
+    }
+
+    //Checks queue for item leeching
+    public void TryLeechFromQueue()
+    {
+        if (!Object.HasStateAuthority)
+            return;
+
+        //If cargo queue has any item
+        if (cargoQueue.Count > 0)
+        {
+            ItemType[] arr = cargoQueue.ToArray();
+            ItemType leechedItem = arr[arr.Length - 1]; //newest item
+            //had to rebuild the queue without the leeched item
+            //since there's no option to dequeue from the opposite side
+
+            Queue<ItemType> newQueue = new Queue<ItemType>();
+            for (int i = 0; i < arr.Length - 1; i++)
+            {
+                newQueue.Enqueue(arr[i]);
+            }
+            cargoQueue = newQueue;
+
+            Debug.Log($"{leechedItem} was leeched by enemy!!");
+            UpdateCargoQueueText();
+        }
+        else
+        {
+            Debug.Log("No items to leech");
+        }
     }
 }
