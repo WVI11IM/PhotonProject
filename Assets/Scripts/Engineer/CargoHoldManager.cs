@@ -6,6 +6,16 @@ using UnityEngine;
 
 public class CargoHoldManager : NetworkBehaviour
 {
+    
+    private static CargoHoldManager _instance;
+    public static CargoHoldManager Instance {
+        get {
+            if (_instance == null)
+                _instance = FindAnyObjectByType<CargoHoldManager>();
+            return _instance;
+        }
+    }
+    
     private Queue<ItemType> cargoQueue = new Queue<ItemType>();
 
     [SerializeField] private int queueCapacity = 10;
