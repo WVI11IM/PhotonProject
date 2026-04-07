@@ -12,7 +12,7 @@ using Unity.Properties;
 public partial class LeechDrainResourceAction : LeechAction {
 
     protected override Status OnStart() {
-        //TODO: Send Photon message to Engineer to destroy the last item in queue
+        CargoHoldManager.Instance.RPC_RequestLeechItem();
         return Status.Success;
     }
 
