@@ -26,21 +26,26 @@ namespace Pilot {
         [SerializeField] private AudioSource audioEject;
         private string _status;
 
-        public override void Spawned()
-        {
-            //When spawned, looks for the engineer in order to assign itself to their EngineerItemSender component
-            GameObject engineerGO = GameObject.FindWithTag("Engineer");
-            if (engineerGO != null)
-            {
-                EngineerItemSender sender = engineerGO.GetComponent<EngineerItemSender>();
-                if (sender != null && sender.Object.HasStateAuthority)
-                {
-                    sender.PilotObject = this.Object;
-                    Debug.Log("Pilot registered itself to engineer");
-                }
-            }
-        }
+        //public override void Spawned()
+        //{
+        //    //When spawned, looks for the engineer in order to assign itself to their EngineerItemSender component
+        //    GameObject engineerGO = GameObject.FindWithTag("Engineer");
+        //    if (engineerGO != null)
+        //    {
+        //        EngineerItemSender sender = engineerGO.GetComponent<EngineerItemSender>();
+        //        if (sender != null && sender.Object.HasStateAuthority)
+        //        {
+        //            sender.PilotObject = this.Object;
+        //            Debug.Log("Pilot registered itself to engineer");
+        //        }
+        //    }
+        //}
 
+        [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+        public void RPC_RequestReceiveItem(ItemType item, Sector sector)
+        {
+            ReceiveItem(item, sector);
+        }
         //Receives the item and sector from the engineer
         public void ReceiveItem(ItemType item, Sector sector)
         {
@@ -69,14 +74,15 @@ namespace Pilot {
                 ShipStats.Instance.ReplenishResource(item);
             }
 
-            //For now, it only sends a message to the pilot informing them about the deployed items
-            RPC_UpdateShipStatus(message);
+            UpdateShipStatusUI(message);
         }
 
-        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-        private void RPC_UpdateShipStatus(string message) {
-            _status = message;
+        private void UpdateShipStatusUI(string message)
+        {
+            if (shipStatusText != null)
+            {
+                shipStatusText.text = "SHIP STATUS:\n" + message;
+            }
         }
     }
-
 }

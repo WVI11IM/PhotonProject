@@ -1,40 +1,44 @@
+using Fusion;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using Fusion;
 
 public class CargoHoldManager : NetworkBehaviour
 {
     private Queue<ItemType> cargoQueue = new Queue<ItemType>();
+
     [SerializeField] private int queueCapacity = 10;
     [SerializeField] private TMPro.TextMeshProUGUI cargoQueueText;
 
     [SerializeField] private AudioSource audioNewCargo;
 
-    public override void Spawned()
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_RequestAddItem(ItemType item)
     {
-        //Only shows cargo queue text if engineer
-        if (cargoQueueText != null)
-        {
-            cargoQueueText.gameObject.SetActive(Object.HasInputAuthority);
-        }
+        TryAddToQueue(item);
     }
-
+    
     //Checks queue capacity for adding an item
     public void TryAddToQueue(ItemType itemType)
     {
+        if (!Object.HasStateAuthority)
+            return;
+
         //If queue still has room, adds the item to the queue
         if (cargoQueue.Count < queueCapacity)
         {
             cargoQueue.Enqueue(itemType);
-            audioNewCargo.Play();
-            Debug.Log($"{itemType} added to cargo queue");
-            RPC_UpdateCargoQueueText(GetCargoQueueText());
 
+            if (audioNewCargo != null) audioNewCargo.Play();
+            Debug.Log($"{itemType} added to local cargo queue");
+
+            UpdateCargoQueueText();
         }
         //Else, it gets ejected and lost forever i guess
         else
         {
+            Debug.LogWarning($"[Queue FULL] {itemType} ejected!");
             AutoEjectItem(itemType);
         }
     }
@@ -49,26 +53,25 @@ public class CargoHoldManager : NetworkBehaviour
     public bool TryGetNextItemFromCargoQueue(out ItemType itemType)
     {
         //If it's empty, return false
-        if(cargoQueue.Count == 0)
+        if (cargoQueue == null || cargoQueue.Count == 0)
         {
             itemType = default;
             return false;
         }
-        //Else, remove the "oldest" item from queue
         itemType = cargoQueue.Dequeue();
-        RPC_UpdateCargoQueueText(GetCargoQueueText());
-        Debug.Log($"{itemType} removed from cargo queue");
+        UpdateCargoQueueText();
         return true;
     }
 
-    //RPC for updating the cargo queue text
-    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
-    public void RPC_UpdateCargoQueueText(string newText)
+    //Manually updates cargo queue text
+    public void UpdateCargoQueueText()
     {
-        if (cargoQueueText != null)
-            cargoQueueText.text = newText;
+        if (Object.HasStateAuthority && cargoQueueText != null)
+        {
+            cargoQueueText.text = GetCargoQueueText();
+        }
     }
-    
+
     //Returns a string of all items on queue
     public string GetCargoQueueText()
     {
@@ -79,7 +82,7 @@ public class CargoHoldManager : NetworkBehaviour
             {
                 queueString += item.ToString() + " <- ";
             }
-            //Trim the end arrow
+            //Trim the last arrow
             queueString = queueString.TrimEnd(' ', '<', '-');
         }
         else
@@ -87,5 +90,41 @@ public class CargoHoldManager : NetworkBehaviour
             queueString += "empty";
         }
         return queueString;
+    }
+
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_RequestLeechItem()
+    {
+        TryLeechFromQueue();
+    }
+
+    //Checks queue for item leeching
+    public void TryLeechFromQueue()
+    {
+        if (!Object.HasStateAuthority)
+            return;
+
+        //If cargo queue has any item
+        if (cargoQueue.Count > 0)
+        {
+            ItemType[] arr = cargoQueue.ToArray();
+            ItemType leechedItem = arr[arr.Length - 1]; //newest item
+            //had to rebuild the queue without the leeched item
+            //since there's no option to dequeue from the opposite side
+
+            Queue<ItemType> newQueue = new Queue<ItemType>();
+            for (int i = 0; i < arr.Length - 1; i++)
+            {
+                newQueue.Enqueue(arr[i]);
+            }
+            cargoQueue = newQueue;
+
+            Debug.Log($"{leechedItem} was leeched by enemy!!");
+            UpdateCargoQueueText();
+        }
+        else
+        {
+            Debug.Log("No items to leech");
+        }
     }
 }

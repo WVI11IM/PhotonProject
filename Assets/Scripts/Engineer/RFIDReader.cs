@@ -1,11 +1,12 @@
+using Fusion;
 using System;
 using System.Collections;
 using System.IO.Ports;
+using System.Linq;
+using System.Management;
 using System.Text;
 using TMPro;
 using UnityEngine;
-using System.Management;
-using System.Linq;
 
 public class RFIDReader : MonoBehaviour
 {
@@ -59,12 +60,18 @@ public class RFIDReader : MonoBehaviour
 
     void Start()
     {
-        TryConnectToRFID();
+        NetworkObject netObj = GetComponentInParent<NetworkObject>();
 
-        //if (sp != null && sp.IsOpen)
-        //    Debug.Log("RFID reader connected");
-        //else
-        //    Debug.Log("No RFID reader detected");
+        if (netObj != null)
+        {
+            //If this is not the player controlling the Engineer, disables the RFID reader
+            if (!netObj.HasInputAuthority)
+            {
+                this.enabled = false;
+                return;
+            }
+        }
+        TryConnectToRFID();
     }
 
     void Update()
@@ -141,10 +148,11 @@ public class RFIDReader : MonoBehaviour
             }
 
             //If there's an item on the cargo queue, add it to the inventory of tapped card
-
             Item nextItemStored = new Item(nextType);
             inventoryManager.AddItem(uid, nextItemStored);
             audioCollect.Play();
+
+            cargoHoldManager.UpdateCargoQueueText();
 
             var storedItems = inventoryManager.GetItems(uid);
             string sequence = string.Join(" <- ", storedItems.Select(i => i.itemType.ToString()));
