@@ -35,10 +35,12 @@ namespace Systems {
             } else
                 instance = _instances.Pop();
             instance.Initialize(p);
+            instance.hideFlags = HideFlags.None;
             return instance;
         }
 
         public void Stash() {
+            hideFlags = HideFlags.HideInHierarchy;
             _instances.Push((T)this);
             Disable();
         }
