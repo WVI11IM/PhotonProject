@@ -4,7 +4,8 @@ using UnityEngine;
 namespace Pilot {
 
     [RequireComponent(typeof(ShipControls))]
-    [RequireComponent(typeof(ShipResource))]
+    [RequireComponent(typeof(ShipStats))]
+    [RequireComponent(typeof(ShipTractor))]
     [RequireComponent(typeof(ShipWeapon))]
     public class ShipCore : Systems.Singleton<ShipCore>, IDamageable {
 

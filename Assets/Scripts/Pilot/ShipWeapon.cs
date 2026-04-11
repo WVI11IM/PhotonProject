@@ -4,7 +4,8 @@ using UnityEngine;
 
 namespace Pilot {
     
-    public class ShipWeapon : MonoBehaviour {
+    [AddComponentMenu("")]
+    public class ShipWeapon : ShipComponent {
 
         [SerializeField] private ShipStats stats;
 

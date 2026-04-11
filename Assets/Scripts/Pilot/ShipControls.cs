@@ -10,7 +10,8 @@ namespace Pilot {
 
     }
     
-    public class ShipControls : MonoBehaviour {
+    [AddComponentMenu("")]
+    public class ShipControls : ShipComponent {
 
         [SerializeField] private ShipStats stats;
 

@@ -5,7 +5,8 @@ using UnityEngine;
 
 namespace Pilot {
 
-    public class ShipTractor : MonoBehaviour {
+    [AddComponentMenu("")]
+    public class ShipTractor : ShipComponent {
         
         /// <summary>
         /// Contains items in range, without filtering for angle range
