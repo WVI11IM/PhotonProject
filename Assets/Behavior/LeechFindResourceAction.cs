@@ -46,7 +46,7 @@ public partial class LeechFindResourceAction : LeechAction {
                 break;
 
             case FindTarget.Ship:
-                set_target.Value = ShipStats.Instance.transform;
+                set_target.Value = ShipCore.Instance.transform;
                 break;
 
             default:

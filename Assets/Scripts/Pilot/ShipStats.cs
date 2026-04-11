@@ -42,7 +42,7 @@ namespace Pilot {
 
     }
     
-    public class ShipStats : Singleton<ShipStats> {
+    public class ShipStats : MonoBehaviour {
 
         [Header("Resources")]
         [field:SerializeField] public ShipResource  Fuel { get; private set; }
