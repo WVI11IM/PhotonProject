@@ -196,7 +196,7 @@ GameObject:
   - component: {fileID: 3165360653546132694}
   m_Layer: 0
   m_Name: Strider
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -257,6 +257,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b17daa4f8bcd8485cbf5bdb8bcc0b723, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemies.Strider.StriderCore
+  health: 0
   rotateForce: 500
   rotateForceMax: 1000
 --- !u!114 &1754253593391128605
