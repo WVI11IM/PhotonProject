@@ -12,13 +12,17 @@ namespace Enemies.Strider.FSM {
         [SerializeField] private float minDistance;
         [Tooltip("The maximum distance the Strider has to be from the player to stay in barrage mode.")]
         [SerializeField] private float maxDistance;
+        [Tooltip("How many bullets to shoot.")]
+        [SerializeField] private int bulletCount;
+        [Tooltip("Range of angle to apply to bullets")]
+        [SerializeField] private float bulletSpread;
 
         public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex, AnimatorControllerPlayable controller) {
             
             base.OnStateUpdate(animator, stateInfo, layerIndex, controller);
             
             // Shoot volley of bullets at the player
-            // TODO: Implement that stuff here
+            FiniteStateMachine.Core.ShootVolley(bulletCount, bulletSpread);
 
             // If too close, enter Flee state
             if (Vector2.Distance(FiniteStateMachine.Core.transform.position, FiniteStateMachine.Core.Ship.position) < minDistance)
