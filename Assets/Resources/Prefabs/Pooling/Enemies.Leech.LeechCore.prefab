@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 1164758691303677073}
   - component: {fileID: 4874008049651768183}
   m_Layer: 0
-  m_Name: Leech
+  m_Name: Enemies.Leech.LeechCore
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
