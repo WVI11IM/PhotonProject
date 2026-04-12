@@ -170,8 +170,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 065d3dbb89f0436fad0cf0bf1e9c8a74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemies.Strider.FSM.StateSeek
-  force: 1250
-  minDistance: 14
+  force: 1500
+  minDistance: 8
 --- !u!91 &9100000
 AnimatorController:
   m_ObjectHideFlags: 0
@@ -274,8 +274,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 481d02830cb44a958c69c5421b137d11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemies.Strider.FSM.StateBarrage
-  minDistance: 10
-  maxDistance: 15
+  minDistance: 5
+  maxDistance: 10
   bulletCount: 10
   bulletSpread: 15
 --- !u!114 &3570709029775363443
@@ -356,7 +356,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f9d2a1aeda14bebbaf2d3c02219e5b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemies.Strider.FSM.StateFlee
-  force: 1250
+  force: 2500
   maxDistance: 11
 --- !u!1107 &8976804946720118627
 AnimatorStateMachine:
