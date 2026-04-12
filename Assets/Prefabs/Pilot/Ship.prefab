@@ -449,6 +449,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4fe0091937b1d4571a5de76ab1172ac1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pilot.ShipStats
+  network: {fileID: 4445381210581544347}
   <Fuel>k__BackingField:
     <Current>k__BackingField: 0
     <Max>k__BackingField: 100
@@ -572,6 +573,7 @@ GameObject:
   - component: {fileID: 2296765658545756482}
   - component: {fileID: 6769905223811690671}
   - component: {fileID: 6729760233153121825}
+  - component: {fileID: 4445381210581544347}
   m_Layer: 0
   m_Name: Networking
   m_TagString: Untagged
@@ -643,3 +645,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pilot.PilotItemSender
   _EngineerObject: {fileID: 0}
+--- !u!114 &4445381210581544347
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8637529766684382311}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82147d3c217865d478bfbcbc6ec85306, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShipStatsNetwork
+  stats: {fileID: 2819457488143021183}
