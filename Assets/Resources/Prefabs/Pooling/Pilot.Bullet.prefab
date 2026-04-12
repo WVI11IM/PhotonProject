@@ -10,8 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 2105560147691116820}
   - component: {fileID: -5752731047088192056}
+  - component: {fileID: -4280332405019894018}
   m_Layer: 0
-  m_Name: Bullet
+  m_Name: Pilot.Bullet
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -45,7 +46,70 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46e6cff1881444849b98e0bc85500ae2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pilot.Bullet
-  travelSpeed: 10
+  type: 0
+  travelSpeed: 25
+  travelSpeedFalloff:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0.2
+      inSlope: -2.5823133
+      outSlope: -2.5823133
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.017523348
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  lifetime: 1
+--- !u!70 &-4280332405019894018
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3296142554137516452}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_Size: {x: 0.5, y: 2.5}
+  m_Direction: 0
 --- !u!1 &3438895166335267781
 GameObject:
   m_ObjectHideFlags: 0
@@ -57,7 +121,6 @@ GameObject:
   - component: {fileID: 6323061839427609960}
   - component: {fileID: 861267707861527114}
   - component: {fileID: 1168653777449996640}
-  - component: {fileID: 2559893170913932486}
   m_Layer: 0
   m_Name: Sphere
   m_TagString: Untagged
@@ -137,24 +200,3 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!135 &2559893170913932486
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3438895166335267781}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}

@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using Logitech;
-using Systems;
 using UnityEditor;
 using UnityEngine;
 
 namespace Pilot {
 
-    public class ShipTractor : Singleton<ShipTractor> {
+    [AddComponentMenu("")]
+    public class ShipTractor : ShipComponent {
         
         /// <summary>
         /// Contains items in range, without filtering for angle range

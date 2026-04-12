@@ -42,7 +42,8 @@ namespace Pilot {
 
     }
     
-    public class ShipStats : Singleton<ShipStats> {
+    [AddComponentMenu("")]
+    public class ShipStats : ShipComponent {
 
         [Header("Resources")]
         [field:SerializeField] public ShipResource  Fuel { get; private set; }

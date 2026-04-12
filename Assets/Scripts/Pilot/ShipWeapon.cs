@@ -1,14 +1,15 @@
 using Logitech;
+using Systems;
 using UnityEngine;
 
 namespace Pilot {
     
-    public class ShipWeapon : MonoBehaviour {
+    [AddComponentMenu("")]
+    public class ShipWeapon : ShipComponent {
 
         [SerializeField] private ShipStats stats;
 
         [Header("Components")]
-        [SerializeField] private Bullet bulletPrefab;
         [SerializeField] private Transform bulletSpawnPoint;
 
         [Header("Config")]
@@ -62,7 +63,13 @@ namespace Pilot {
         }
 
         private void FireSingleBullet() {
-            Bullet b = Instantiate(bulletPrefab, bulletSpawnPoint.position, bulletSpawnPoint.rotation * Quaternion.Euler(0, 0, Random.Range(-spreadAngle, spreadAngle)));
+            if (Core.Stats.Ammo.Current <= 0)
+                return;
+            Core.Stats.Ammo.Consume(1);
+            var b = Pooling<Bullet>.Retrieve(BulletType.Player);
+            b.transform.position = bulletSpawnPoint.position;
+            b.transform.rotation = bulletSpawnPoint.rotation *
+                                   Quaternion.Euler(0, 0, Random.Range(-spreadAngle, spreadAngle));
         }
 
     }

@@ -66,12 +66,12 @@ namespace Pilot {
             {
                 audioWrong.Play();
                 message = $"Wrong item deployed! {item} to {sector}! Penalty!";
-                ShipStats.Instance.IncorrectSectorPenalty((ItemType)sector);
+                ShipCore.Instance.Stats.IncorrectSectorPenalty((ItemType)sector);
             }
             else
             {
                 //The item was deployed correctly
-                ShipStats.Instance.ReplenishResource(item);
+                ShipCore.Instance.Stats.ReplenishResource(item);
             }
 
             UpdateShipStatusUI(message);

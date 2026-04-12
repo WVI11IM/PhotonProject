@@ -15,11 +15,11 @@ GameObject:
   - component: {fileID: 4874008049651768183}
   m_Layer: 0
   m_Name: Leech
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &7970553895194446931
 Transform:
   m_ObjectHideFlags: 0
@@ -113,6 +113,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09a9b058c51a947538f3f1949b9472e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemies.Leech.LeechCore
+  health: 0
   targetItem: {fileID: 0}
   boostSpread: 20
 --- !u!114 &4874008049651768183
@@ -134,6 +135,7 @@ MonoBehaviour:
   - rid: 6714653893987139875
   - rid: 6714653893987139876
   - rid: 6714653893987139877
+  - rid: 6714653893987140322
   m_OriginalGraph: {fileID: 0}
   m_IsInitialised: 0
   m_IsStarted: 0
@@ -155,7 +157,7 @@ MonoBehaviour:
           m_Value0: 15191658453343606189
           m_Value1: 1814254748057757655
         Name: Ship Jerk Delay
-        m_Value: 0.5
+        m_Value: 0.15
     - rid: 6714653893987139875
       type: {class: 'BlackboardVariable`1[[System.Single, mscorlib]]', ns: Unity.Behavior, asm: Unity.Behavior}
       data:
@@ -163,7 +165,7 @@ MonoBehaviour:
           m_Value0: 13316650656352153485
           m_Value1: 4759968956779105250
         Name: Item Jerk Delay
-        m_Value: 1
+        m_Value: 0.6
     - rid: 6714653893987139876
       type: {class: 'BlackboardVariable`1[[System.Single, mscorlib]]', ns: Unity.Behavior, asm: Unity.Behavior}
       data:
@@ -180,6 +182,14 @@ MonoBehaviour:
           m_Value1: 17845287355995103533
         Name: Item Jerk Force
         m_Value: 1200
+    - rid: 6714653893987140322
+      type: {class: 'BlackboardVariable`1[[System.Single, mscorlib]]', ns: Unity.Behavior, asm: Unity.Behavior}
+      data:
+        GUID:
+          m_Value0: 8078105302715589630
+          m_Value1: 15580880356798795584
+        Name: Digestion Stun Duration
+        m_Value: 1
 --- !u!1 &1972968606319955698
 GameObject:
   m_ObjectHideFlags: 0

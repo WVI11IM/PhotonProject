@@ -276,6 +276,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Enemies.Strider.FSM.StateBarrage
   minDistance: 10
   maxDistance: 15
+  bulletCount: 10
+  bulletSpread: 15
 --- !u!114 &3570709029775363443
 MonoBehaviour:
   m_ObjectHideFlags: 1
