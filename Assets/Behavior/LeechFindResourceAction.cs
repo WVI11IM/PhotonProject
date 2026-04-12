@@ -1,6 +1,7 @@
 using System;
 using Enemies.Leech;
 using Pilot;
+using Pilot.Ship;
 using Unity.Behavior;
 using UnityEngine;
 using Action = Unity.Behavior.Action;

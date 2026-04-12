@@ -1,17 +1,24 @@
+using System;
 using Pilot;
+using Pilot.Enemies;
+using Pilot.Ship;
 using Systems;
-using Unity.Behavior;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Enemies.Leech {
+    
+    [RequireComponent(typeof(Rigidbody2D))]
+    [RequireComponent(typeof(ItemDropper))]
+    public class LeechCore : Pooling<LeechCore>, IDamageable {
 
-    public class LeechCore : MonoBehaviour, IDamageable {
-
+        private ItemDropper _dropper;
         private Rigidbody2D _rb;
         private Transform _ship;
+        private int _maxHealth;
         private float _lastBoostTime;
 
-        [SerializeField] private float health;
+        [SerializeField] private int health;
         public ResourceItem targetItem;
         [Tooltip("How much random offset to apply to the boost direction")]
         [SerializeField] private float boostSpread;
@@ -31,8 +38,10 @@ namespace Enemies.Leech {
             }
         }
 
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start() { }
+        private void Awake() {
+            _dropper = GetComponent<ItemDropper>();
+            _maxHealth = health;
+        }
 
         // Update is called once per frame
         void Update() {
@@ -53,10 +62,20 @@ namespace Enemies.Leech {
 
         public void TakeDamage() {
             health--;
+            if (health <= 0)
+                Die();
         }
 
         private void Die() {
-            
+            _dropper.DropItems();
+            Stash();
+        }
+
+        protected override void Initialize(params object[] p) {
+            health = _maxHealth;
+        }
+        protected override void Disable() {
+            gameObject.SetActive(false);
         }
 
     }

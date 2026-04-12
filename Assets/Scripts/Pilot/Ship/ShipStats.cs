@@ -1,10 +1,8 @@
 using System;
-using Systems;
 using Unity.Collections;
 using UnityEngine;
-using Object = System.Object;
 
-namespace Pilot {
+namespace Pilot.Ship {
 
     [Serializable]
     public class ShipResource {

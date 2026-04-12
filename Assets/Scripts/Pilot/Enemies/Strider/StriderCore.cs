@@ -1,19 +1,31 @@
+using System;
 using Pilot;
+using Pilot.Enemies;
+using Pilot.Ship;
 using Systems;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Enemies.Strider {
 
     [RequireComponent(typeof(Rigidbody2D))]
-    public class StriderCore : MonoBehaviour, IDamageable {
+    [RequireComponent(typeof(ItemDropper))]
+    public class StriderCore : Pooling<StriderCore>, IDamageable {
 
+        private ItemDropper _dropper;
         private Rigidbody2D _rb;
         private Transform _ship;
+        private int _maxHealth;
 
         [SerializeField] private int health;
         [Header("Movement Config")]
         [SerializeField] private float rotateForce;
         [SerializeField] private float rotateForceMax;
+
+        private void Awake() {
+            _dropper = GetComponent<ItemDropper>();
+            _maxHealth = health;
+        }
 
         public Rigidbody2D Rb {
             get {
@@ -36,10 +48,6 @@ namespace Enemies.Strider {
             Rb.AddTorque(Mathf.Clamp(diff * -rotateForce, -rotateForceMax, rotateForceMax) * Time.fixedDeltaTime);
         }
 
-        public void TakeDamage() {
-            health--;
-        }
-
         public void ShootVolley(int count, float spread) {
             for (var i = 0; i < count; i++) {
                 var b = Pooling<Bullet>.Retrieve(BulletType.Enemy);
@@ -49,8 +57,22 @@ namespace Enemies.Strider {
             }
         }
 
+        public void TakeDamage() {
+            health--;
+            if (health <= 0)
+                Die();
+        }
+
         private void Die() {
-            
+            _dropper.DropItems();
+            Stash();
+        }
+
+        protected override void Initialize(params object[] p) {
+            health = _maxHealth;
+        }
+        protected override void Disable() {
+            gameObject.SetActive(false);
         }
 
     }

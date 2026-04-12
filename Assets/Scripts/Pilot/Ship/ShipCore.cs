@@ -1,7 +1,7 @@
 using Systems;
 using UnityEngine;
 
-namespace Pilot {
+namespace Pilot.Ship {
 
     [RequireComponent(typeof(ShipControls))]
     [RequireComponent(typeof(ShipStats))]

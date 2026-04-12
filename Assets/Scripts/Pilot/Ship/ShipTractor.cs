@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-namespace Pilot {
+namespace Pilot.Ship {
 
     [AddComponentMenu("")]
     public class ShipTractor : ShipComponent {

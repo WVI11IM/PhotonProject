@@ -1,4 +1,5 @@
 using Fusion;
+using Pilot.Ship;
 using Systems;
 using TMPro;
 using UnityEngine;
