@@ -1,14 +1,23 @@
 using System;
+using Systems;
 using TMPro;
 using UnityEngine;
 
 namespace Pilot {
 
-    public class ResourceItem : MonoBehaviour {
+    public class ResourceItem : Pooling<ResourceItem> {
 
         [SerializeField] private ItemType type;
         [SerializeField] private GameObject cube;
         [SerializeField] private TextMeshPro label;
+        private Rigidbody2D _rb;
+        public Rigidbody2D Rb {
+            get {
+                if (_rb == null)
+                    _rb = GetComponent<Rigidbody2D>();
+                return _rb;
+            }
+        }
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start() {
@@ -36,7 +45,16 @@ namespace Pilot {
             catch {
                 // ignored
             }
-            Destroy(gameObject);
+            Stash();
+        }
+
+        protected override void Initialize(params object[] p) {
+            gameObject.SetActive(true);
+            type = (ItemType)p[0];
+            label.text = type.ToString();
+        }
+        protected override void Disable() {
+            gameObject.SetActive(false);
         }
 
     }

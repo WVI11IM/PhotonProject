@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7970553895194446931}
   - component: {fileID: 5028802492444995918}
   - component: {fileID: 4185710754428666759}
+  - component: {fileID: 6554082638608035443}
   - component: {fileID: 1164758691303677073}
   - component: {fileID: 4874008049651768183}
   m_Layer: 0
@@ -101,6 +102,26 @@ CapsuleCollider2D:
   m_Offset: {x: 0, y: 0}
   m_Size: {x: 1, y: 2}
   m_Direction: 0
+--- !u!114 &6554082638608035443
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1273886181054661043}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80746c63590f4e28a86fd699198c6d88, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Pilot.Enemies.ItemDropper
+  drops:
+  - type: 3
+    count: 2
+  - type: 2
+    count: 2
+  - type: 0
+    count: 1
+  explosionForce: 1400
 --- !u!114 &1164758691303677073
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -113,7 +134,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09a9b058c51a947538f3f1949b9472e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemies.Leech.LeechCore
-  health: 0
+  health: 5
   targetItem: {fileID: 0}
   boostSpread: 20
 --- !u!114 &4874008049651768183
