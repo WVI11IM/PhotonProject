@@ -399,6 +399,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pilot.ShipControls
   stats: {fileID: 2819457488143021183}
   steeringMode: 1
+  fuelConsumptionFactor: 4
   steerForce: 400
   acceleration: -50
   max: 500

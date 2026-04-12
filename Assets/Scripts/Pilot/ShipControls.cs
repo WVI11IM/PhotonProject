@@ -19,6 +19,8 @@ namespace Pilot {
         
         private Rigidbody2D _rb;
 
+        [SerializeField] private float fuelConsumptionFactor;
+
         [Header("Steering Config (Classic Velocity)")]
         [SerializeField] private float steerForce;
         [Header("Steering Config (Absolute Angle)")]
@@ -48,13 +50,24 @@ namespace Pilot {
                 LogitechUtil.SetSpringForce(0, 0, 0);
             }
 
+            if (Core.Stats.Fuel.Current <= 0)
+                return;
+            
+            // Fuel factor is a number shared for both force calculation and fuel consumption during this frame
+            float fuelFactor =
+                LogitechUtil.AxisPedalAccelerator * // Use the accelerator...
+                boostForceFuelFalloff.Evaluate(stats.Fuel.Current / stats.Fuel.Max) * // ...with falloff if fuel is low...
+                Time.fixedDeltaTime;
+
             // Acceleration boost 
             _rb.AddForce(
-                LogitechUtil.AxisPedalAccelerator * // Use the accelerator...
                 boostForce * // ...plus the force multiplier...
-                boostForceFuelFalloff.Evaluate(stats.Fuel.Current / stats.Fuel.Max) * // ...with falloff if fuel is low...
-                Time.fixedDeltaTime * // ...plus the delta time adjustment
+                fuelFactor * // ...plues the fuel factor...
                 transform.up); // ...to move in the direction the gun is pointing.
+            
+            // Fuel consumption
+            Core.Stats.Fuel.Consume(fuelFactor * fuelConsumptionFactor);
+            
         }
 
     }

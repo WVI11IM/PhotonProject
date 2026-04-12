@@ -40,9 +40,9 @@ namespace Systems {
         }
 
         public void Stash() {
-            hideFlags = HideFlags.HideInHierarchy;
             _instances.Push((T)this);
             Disable();
+            hideFlags = HideFlags.HideInHierarchy;
         }
 
         protected abstract void Initialize(params object[] p);

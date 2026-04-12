@@ -63,6 +63,9 @@ namespace Pilot {
         }
 
         private void FireSingleBullet() {
+            if (Core.Stats.Ammo.Current <= 0)
+                return;
+            Core.Stats.Ammo.Consume(1);
             var b = Pooling<Bullet>.Retrieve(BulletType.Player);
             b.transform.position = bulletSpawnPoint.position;
             b.transform.rotation = bulletSpawnPoint.rotation *
