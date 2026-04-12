@@ -2,7 +2,7 @@ using Logitech;
 using Systems;
 using UnityEngine;
 
-namespace Pilot {
+namespace Pilot.Ship {
     
     [AddComponentMenu("")]
     public class ShipWeapon : ShipComponent {

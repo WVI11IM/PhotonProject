@@ -1,7 +1,7 @@
-using UnityEngine;
 using Logitech;
+using UnityEngine;
 
-namespace Pilot {
+namespace Pilot.Ship {
 
     public enum SteeringMode {
 

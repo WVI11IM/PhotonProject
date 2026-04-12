@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Pilot {
+namespace Pilot.Ship {
 
     [RequireComponent(typeof(ShipCore))]
     public abstract class ShipComponent : MonoBehaviour {
