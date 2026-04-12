@@ -9,7 +9,11 @@ namespace Pilot.Ship {
 
     [AddComponentMenu("")]
     public class ShipTractor : ShipComponent {
-        
+
+        private static readonly int MatPropStartAngle = Shader.PropertyToID("_startAngle");
+        private static readonly int MatPropEndAngle = Shader.PropertyToID("_endAngle");
+        private static readonly int MatPropOuterRadius = Shader.PropertyToID("_outerRadius");
+
         /// <summary>
         /// Contains items in range, without filtering for angle range
         /// </summary>
@@ -21,11 +25,16 @@ namespace Pilot.Ship {
         [field:SerializeField] public float Factor { get; private set; }
         [field:SerializeField] public float Deadzone { get; private set; }
         [SerializeField] private float pullForce;
+        [SerializeField] private Material arcMaterial;
         public bool Attracting => Factor > Deadzone;
 
         // Update is called once per frame
         void Update() {
             Factor = LogitechUtil.AxisPedalBrake;
+            float angle = RangeAngleFalloff.Evaluate(Factor) * 90;
+            arcMaterial.SetFloat(MatPropStartAngle, -angle);
+            arcMaterial.SetFloat(MatPropEndAngle, angle);
+            arcMaterial.SetFloat(MatPropOuterRadius, RangeDistanceFalloff.Evaluate(Factor));
             if (Attracting)
                 Attract();
         }
