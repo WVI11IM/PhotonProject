@@ -183,12 +183,21 @@ MonoBehaviour:
   - rid: 6714653893987139876
   - rid: 6714653893987139877
   - rid: 6714653893987140322
+  - rid: 4072528731814494273
   m_OriginalGraph: {fileID: 0}
   m_IsInitialised: 0
   m_IsStarted: 0
   references:
     version: 2
     RefIds:
+    - rid: 4072528731814494273
+      type: {class: 'BlackboardVariable`1[[System.Single, mscorlib]]', ns: Unity.Behavior, asm: Unity.Behavior}
+      data:
+        GUID:
+          m_Value0: 15066787710051659312
+          m_Value1: 5338034081193963219
+        Name: Item Consume Range
+        m_Value: 1
     - rid: 6714653893987139663
       type: {class: 'BlackboardVariable`1[[UnityEngine.GameObject, UnityEngine.CoreModule]]', ns: Unity.Behavior, asm: Unity.Behavior}
       data:

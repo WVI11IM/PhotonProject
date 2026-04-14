@@ -134,8 +134,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemies.Strider.StriderCore
   health: 10
-  rotateForce: 500
-  rotateForceMax: 300
+  rotateForce: 200
+  rotateForceMax: 1000
 --- !u!114 &1754253593391128605
 MonoBehaviour:
   m_ObjectHideFlags: 0
