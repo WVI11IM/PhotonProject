@@ -1,4 +1,5 @@
 using System;
+using Enemies.Leech;
 using Systems;
 using TMPro;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace Pilot {
     public class ResourceItem : Pooling<ResourceItem> {
 
         private ItemType _type;
-        [field:SerializeField] private ItemType Type {
+        private ItemType Type {
             get => _type;
             set {
                 if (Application.isPlaying)
@@ -18,8 +19,11 @@ namespace Pilot {
                     spinner = transform.GetChild(0);
                 for (int i = 0; i < itemMeshes.Length; i++)
                     itemMeshes[i].SetActive(i == (int)value);
+
+                tag = value == ItemType.Debris ? "Debris" : "Item";
             }
         }
+        public LeechCore chaser;
 
         [SerializeField] private GameObject[] itemMeshes;
         [SerializeField] private Transform spinner;
@@ -50,7 +54,7 @@ namespace Pilot {
         }
 
         public void LeechConsume() {
-            Destroy(gameObject);
+            Stash();
         }
 
         private void PickUp() {
@@ -69,6 +73,7 @@ namespace Pilot {
         }
         protected override void Disable() {
             gameObject.SetActive(false);
+            chaser = null;
         }
 
     }

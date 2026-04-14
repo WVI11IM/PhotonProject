@@ -36,13 +36,21 @@ public partial class LeechFindResourceAction : LeechAction {
 
                 GameObject nearestCandidate = items[0];
 
-                foreach (var item in items)
+                foreach (var item in items) {
+                    // Only one leech should chase any given item at a time, lest all leeches seek the same item when there are several strewn about
+                    if (item.GetComponent<ResourceItem>().chaser != null && item.GetComponent<ResourceItem>().chaser != Leech)
+                        continue;
                     if (Vector2.Distance(Leech.transform.position, item.transform.position) <
                         nearestCandidateDist) {
                         nearestCandidateDist = Vector2.Distance(Leech.transform.position, item.transform.position);
                         nearestCandidate = item;
                     }
+                }
+                
+                if (Leech.targetItem)
+                    Leech.targetItem.chaser = null;
                 Leech.targetItem = nearestCandidate.GetComponent<ResourceItem>();
+                Leech.targetItem.chaser = Leech;
                 set_target.Value = nearestCandidate.transform;
                 break;
 

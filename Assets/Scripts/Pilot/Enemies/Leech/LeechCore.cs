@@ -23,6 +23,12 @@ namespace Enemies.Leech {
         [Tooltip("How much random offset to apply to the boost direction")]
         [SerializeField] private float boostSpread;
 
+        [Header("Animation Config")]
+        [SerializeField] private GameObject model;
+        [SerializeField] private float rotationLerpSpeed;
+        [SerializeField] private float spinPerVelocityMult;
+        [SerializeField] private AnimationCurve squashAndStretchPerVelocity;
+
         public Rigidbody2D Rb {
             get {
                 if (_rb == null)
@@ -45,7 +51,21 @@ namespace Enemies.Leech {
 
         // Update is called once per frame
         void Update() {
-            
+            float velMagnitude = Rb.linearVelocity.magnitude;
+            float lerpTo = 0;
+            if (transform.parent) {
+                Vector2 parentDelta = transform.parent.position - transform.position;
+                lerpTo = Mathf.Atan2(parentDelta.y, parentDelta.x);
+            } else {
+                lerpTo = Mathf.Atan2(Rb.linearVelocity.y, Rb.linearVelocity.x);
+            }
+            Rb.rotation = Mathf.LerpAngle(Rb.rotation, lerpTo * Mathf.Rad2Deg - 90, Time.deltaTime * rotationLerpSpeed);
+            model.transform.Rotate(velMagnitude * spinPerVelocityMult * Time.deltaTime * Vector3.up);
+            Vector3 scale = model.transform.localScale;
+            scale.y = squashAndStretchPerVelocity.Evaluate(velMagnitude);
+            model.transform.localScale = scale;
+            if (targetItem)
+                Debug.DrawLine(transform.position, targetItem.transform.position);
         }
 
         /// <summary>

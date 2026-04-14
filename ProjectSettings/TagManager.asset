@@ -9,6 +9,7 @@ TagManager:
   - Item
   - Enemy
   - Obstacle
+  - Debris
   layers:
   - Default
   - TransparentFX

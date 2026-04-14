@@ -136,6 +136,33 @@ MonoBehaviour:
   health: 5
   targetItem: {fileID: 0}
   boostSpread: 20
+  model: {fileID: 1281545003093363737}
+  rotationLerpSpeed: 20
+  spinPerVelocityMult: -100
+  squashAndStretchPerVelocity:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.75
+      inSlope: 0.661335
+      outSlope: 0.661335
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.02686916
+    - serializedVersion: 3
+      time: 1
+      value: 1.2
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!114 &4874008049651768183
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -283,6 +310,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 05f217f4b5a9a264eb889387ae974cdd, type: 3}
+--- !u!1 &1281545003093363737 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 05f217f4b5a9a264eb889387ae974cdd, type: 3}
+  m_PrefabInstance: {fileID: 2092379089095864648}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1910413339242976931 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 05f217f4b5a9a264eb889387ae974cdd, type: 3}
