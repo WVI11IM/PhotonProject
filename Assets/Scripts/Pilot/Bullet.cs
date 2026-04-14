@@ -15,10 +15,20 @@ namespace Pilot {
         [SerializeField] private float travelSpeed;
         [SerializeField] private AnimationCurve travelSpeedFalloff;
         [SerializeField] private float lifetime;
+        [SerializeField] private Material matPlayer;
+        [SerializeField] private Material matEnemy;
+        [SerializeField] private new MeshRenderer renderer;
+        [SerializeField] private new TrailRenderer trailRenderer;
+        [SerializeField] private Gradient trailGradientPlayer;
+        [SerializeField] private Gradient trailGradientEnemy;
 
         private float _spawnTime;
 
         private void FixedUpdate() {
+            if (!trailRenderer.emitting) {
+                trailRenderer.emitting = true;
+                trailRenderer.Clear();
+            }
             transform.Translate(Vector2.up * (travelSpeed * travelSpeedFalloff.Evaluate((Time.time - _spawnTime) / lifetime) * Time.fixedDeltaTime));
             if (Time.time - _spawnTime >= lifetime)
                 DeleteBullet();
@@ -45,8 +55,20 @@ namespace Pilot {
             gameObject.SetActive(true);
             _spawnTime = Time.time;
             type = (BulletType)p[0];
+            renderer.material = type switch {
+                BulletType.Enemy => matEnemy,
+                BulletType.Player => matPlayer,
+                _ => null
+            };
+            trailRenderer.colorGradient = type switch {
+                BulletType.Enemy => trailGradientEnemy,
+                BulletType.Player => trailGradientPlayer,
+                _ => null
+            };
         }
         protected override void Disable() {
+            trailRenderer.emitting = false;
+            trailRenderer.Clear();
             gameObject.SetActive(false);
         }
 
