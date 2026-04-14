@@ -90,6 +90,9 @@ MonoBehaviour:
   - {fileID: 1109523503640519349}
   spinner: {fileID: 2225168486291375259}
   spinSpeed: 100
+  lifetime: 10
+  blinkStart: 8
+  blinkFrequency: 10
 --- !u!58 &7832301533212365773
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -100,7 +103,7 @@ CircleCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: b4bbe196c934efe4fa3552dac7a73a95, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -142,7 +145,7 @@ Rigidbody2D:
   m_LinearDamping: 4
   m_AngularDamping: 0.05
   m_GravityScale: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: b4bbe196c934efe4fa3552dac7a73a95, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0

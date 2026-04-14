@@ -10,6 +10,7 @@ TagManager:
   - Enemy
   - Obstacle
   - Debris
+  - KillScreen
   layers:
   - Default
   - TransparentFX

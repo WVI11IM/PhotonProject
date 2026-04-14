@@ -23,11 +23,6 @@ namespace Pilot {
                 tag = value == ItemType.Debris ? "Debris" : "Item";
             }
         }
-        public LeechCore chaser;
-
-        [SerializeField] private GameObject[] itemMeshes;
-        [SerializeField] private Transform spinner;
-        [SerializeField] private float spinSpeed;
         private Rigidbody2D _rb;
         public Rigidbody2D Rb {
             get {
@@ -36,6 +31,16 @@ namespace Pilot {
                 return _rb;
             }
         }
+        
+        public LeechCore chaser;
+        [SerializeField] private GameObject[] itemMeshes;
+        [SerializeField] private Transform spinner;
+        [SerializeField] private float spinSpeed;
+        [SerializeField] private float lifetime;
+        [SerializeField] private float blinkStart;
+        [SerializeField] private float blinkFrequency;
+
+        private float spawnTime;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start() {
@@ -47,11 +52,21 @@ namespace Pilot {
         // Update is called once per frame
         void Update() {
             spinner.transform.Rotate(Time.deltaTime * spinSpeed * Vector3.up, Space.Self);
+            bool show = true;
+            float blinkSin = Mathf.Sin((Time.time - spawnTime) * Mathf.PI * blinkFrequency);
+            Debug.DrawRay(transform.position, Vector2.up * blinkSin, Color.dodgerBlue);
+            if (Time.time - spawnTime > blinkStart)
+                show = blinkSin > 0;
+            itemMeshes[(int)Type].SetActive(show);
+            if (Time.time - spawnTime >= lifetime)
+                Type = ItemType.Debris;
         }
 
         private void OnTriggerEnter2D(Collider2D other) {
             if (other.CompareTag("Player"))
                 PickUp();
+            if (other.CompareTag("KillScreen"))
+                Stash();
         }
 
         public void LeechConsume(Vector2 pos) {
@@ -70,6 +85,7 @@ namespace Pilot {
         }
 
         protected override void Initialize(params object[] p) {
+            spawnTime = Time.time;
             gameObject.SetActive(true);
             Type = (ItemType)p[0];
         }
