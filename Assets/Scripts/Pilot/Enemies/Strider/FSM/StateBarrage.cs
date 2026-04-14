@@ -1,3 +1,4 @@
+using Pilot.Ship;
 using UnityEngine;
 using UnityEngine.Animations;
 
@@ -25,17 +26,17 @@ namespace Enemies.Strider.FSM {
             FiniteStateMachine.Core.ShootVolley(bulletCount, bulletSpread);
 
             // If too close, enter Flee state
-            if (Vector2.Distance(FiniteStateMachine.Core.transform.position, FiniteStateMachine.Core.Ship.position) < minDistance)
+            if (Vector2.Distance(FiniteStateMachine.Core.transform.position, ShipCore.Instance.transform.position) < minDistance)
                 FiniteStateMachine.fsmAnimator.SetTrigger(Flee);
             // If too far, enter Seek state
-            if (Vector2.Distance(FiniteStateMachine.Core.transform.position, FiniteStateMachine.Core.Ship.position) > maxDistance)
+            if (Vector2.Distance(FiniteStateMachine.Core.transform.position, ShipCore.Instance.transform.position) > maxDistance)
                 FiniteStateMachine.fsmAnimator.SetTrigger(Seek);
             
         }
 
         public override void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex) { base.OnStateUpdate(animator, stateInfo, layerIndex);
             // Turn to face the player
-            FiniteStateMachine.Core.TorqueToFace(FiniteStateMachine.Core.Ship.position - FiniteStateMachine.Core.transform.position);
+            FiniteStateMachine.Core.TorqueToFace(ShipCore.Instance.transform.position - FiniteStateMachine.Core.transform.position);
         }
 
     }

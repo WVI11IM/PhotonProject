@@ -1,3 +1,4 @@
+using Pilot.Ship;
 using UnityEngine;
 using UnityEngine.Animations;
 
@@ -16,10 +17,10 @@ namespace Enemies.Strider.FSM {
             base.OnStateUpdate(animator, stateInfo, layerIndex, controller);
             
             // Flee the ship
-            FiniteStateMachine.Core.Rb.AddForce( (FiniteStateMachine.Core.transform.position - FiniteStateMachine.Core.Ship.position).normalized * force * Time.deltaTime);
+            FiniteStateMachine.Core.Rb.AddForce((FiniteStateMachine.Core.transform.position - ShipCore.Instance.transform.position).normalized * force * Time.deltaTime);
 
             // If outside range, enter Barrage state
-            if (Vector2.Distance(FiniteStateMachine.Core.transform.position, FiniteStateMachine.Core.Ship.position) > maxDistance)
+            if (Vector2.Distance(FiniteStateMachine.Core.transform.position, ShipCore.Instance.transform.position) > maxDistance)
                 FiniteStateMachine.fsmAnimator.SetTrigger(Barrage);
             
             // Turn to face movement direction
