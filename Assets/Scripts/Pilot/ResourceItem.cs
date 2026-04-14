@@ -7,9 +7,23 @@ namespace Pilot {
 
     public class ResourceItem : Pooling<ResourceItem> {
 
-        [SerializeField] private ItemType type;
-        [SerializeField] private GameObject cube;
-        [SerializeField] private TextMeshPro label;
+        private ItemType _type;
+        [field:SerializeField] private ItemType Type {
+            get => _type;
+            set {
+                if (Application.isPlaying)
+                    name = $"ResourceItem.{value.ToString()}";
+                _type = value;
+                if (!spinner)
+                    spinner = transform.GetChild(0);
+                for (int i = 0; i < itemMeshes.Length; i++)
+                    itemMeshes[i].SetActive(i == (int)value);
+            }
+        }
+
+        [SerializeField] private GameObject[] itemMeshes;
+        [SerializeField] private Transform spinner;
+        [SerializeField] private float spinSpeed;
         private Rigidbody2D _rb;
         public Rigidbody2D Rb {
             get {
@@ -21,12 +35,13 @@ namespace Pilot {
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start() {
-            label.text = type.ToString();
+            if (!spinner)
+                spinner = transform.GetChild(0);
         }
 
         // Update is called once per frame
         void Update() {
-            cube.transform.Rotate(Vector3.up * Time.deltaTime, Space.Self);
+            spinner.transform.Rotate(Time.deltaTime * spinSpeed * Vector3.up, Space.Self);
         }
 
         private void OnTriggerEnter2D(Collider2D other) {
@@ -40,7 +55,7 @@ namespace Pilot {
 
         private void PickUp() {
             try {
-                PilotItemSender.Instance.SendItem(type);
+                PilotItemSender.Instance.SendItem(Type);
             }
             catch {
                 // ignored
@@ -50,8 +65,7 @@ namespace Pilot {
 
         protected override void Initialize(params object[] p) {
             gameObject.SetActive(true);
-            type = (ItemType)p[0];
-            label.text = type.ToString();
+            Type = (ItemType)p[0];
         }
         protected override void Disable() {
             gameObject.SetActive(false);
