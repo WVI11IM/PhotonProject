@@ -41,6 +41,7 @@ namespace Pilot {
         void Start() {
             if (!spinner)
                 spinner = transform.GetChild(0);
+            Type = Type; // Force the corresponding mesh to be made visible on start
         }
 
         // Update is called once per frame
@@ -53,8 +54,9 @@ namespace Pilot {
                 PickUp();
         }
 
-        public void LeechConsume() {
-            Stash();
+        public void LeechConsume(Vector2 pos) {
+            Type = ItemType.Debris;
+            transform.position = pos;
         }
 
         private void PickUp() {

@@ -82,11 +82,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5489248de8fb304eaa93c650d96c0b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pilot.ResourceItem
+  chaser: {fileID: 0}
   itemMeshes:
-  - {fileID: 2123648346337122860}
-  - {fileID: 1109523503640519349}
-  - {fileID: 3716174600576998454}
   - {fileID: 4114448365748225040}
+  - {fileID: 2123648346337122860}
+  - {fileID: 3716174600576998454}
+  - {fileID: 1109523503640519349}
   spinner: {fileID: 2225168486291375259}
   spinSpeed: 100
 --- !u!58 &7832301533212365773
