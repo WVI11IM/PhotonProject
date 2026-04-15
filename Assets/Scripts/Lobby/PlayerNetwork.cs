@@ -21,16 +21,7 @@ public class PlayerNetwork : NetworkBehaviour
     {
         base.Spawned();
 
-        //When player is spawned, it attempts to link their role script to the other player's
-        if (Object.HasStateAuthority)
-        {
-            NetworkRunnerHandler.Instance.TryLinkPlayerSystems();
-        }
-
-        //Ensures this object persists from Room to Gameplay scene
-        Runner.MakeDontDestroyOnLoad(gameObject);
-
-        //Initialize built-in change detector to watch this object's networked state
+        ////Initialize built-in change detector to watch this object's networked state
         _changeDetector = GetChangeDetector(ChangeDetector.Source.SimulationState);
 
         if (Object.HasInputAuthority)
@@ -39,12 +30,36 @@ public class PlayerNetwork : NetworkBehaviour
             playerRole = PlayerInfo.Role;
         }
 
+        //Ensures this object persists from Room to Gameplay scene
+        Runner.MakeDontDestroyOnLoad(gameObject);
+
         UpdateState();
         UpdateLocalUI();
 
         if (!Object.HasInputAuthority)
         {
             StartCoroutine(InitialSyncDelay());
+        }
+        if (Object.HasInputAuthority)
+        {
+            StartCoroutine(LoadRoleScene());
+        }
+
+        IEnumerator LoadRoleScene()
+        {
+            yield return new WaitUntil(() => IsGameplayActive && playerRole != default);
+
+            int sceneToLoad =
+                playerRole == Role.Engineer ? NetworkRunnerHandler.ENGINEER_SCENE_INDEX : NetworkRunnerHandler.PILOT_SCENE_INDEX;
+
+            yield return SceneManager.LoadSceneAsync(sceneToLoad, LoadSceneMode.Additive);
+
+            Scene roomScene = SceneManager.GetSceneByBuildIndex(NetworkRunnerHandler.ROOM_SCENE_INDEX);
+
+            if (roomScene.isLoaded)
+            {
+                yield return SceneManager.UnloadSceneAsync(roomScene);
+            }
         }
     }
 
