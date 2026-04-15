@@ -72,6 +72,7 @@ namespace Pilot {
             else
             {
                 //The item was deployed correctly
+                audioRight.Play();
                 ShipCore.Instance.Stats.ReplenishResource(item);
             }
 

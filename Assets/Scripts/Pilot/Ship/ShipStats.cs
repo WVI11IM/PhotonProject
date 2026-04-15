@@ -1,5 +1,6 @@
 using System;
 using Unity.Collections;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 
 namespace Pilot.Ship {
@@ -34,7 +35,7 @@ namespace Pilot.Ship {
             }
             Current = Mathf.Clamp(Current - amount, 0, Max);
         }
-        
+
         // Override cast to float, so value can be accessed directly.
         public static explicit operator float(ShipResource stat) => stat.Current;
 
@@ -42,6 +43,8 @@ namespace Pilot.Ship {
     
     [AddComponentMenu("")]
     public class ShipStats : ShipComponent {
+
+        [SerializeField] private ShipStatsNetwork network;
 
         [Header("Resources")]
         [field:SerializeField] public ShipResource  Fuel { get; private set; }
@@ -55,19 +58,29 @@ namespace Pilot.Ship {
             Hull.Initialize();
         }
 
-        public void ReplenishResource(ItemType resource) => TypeToResource(resource).Replenish();
-        public void IncorrectSectorPenalty(ItemType resource) => TypeToResource(resource).Penalty();
+        public void ReplenishResource(ItemType resource)
+        {
+            if (network == null) return;
 
-        public ShipResource TypeToResource(ItemType type) {
+            network.Replenish(resource);
+        }
+        public void IncorrectSectorPenalty(ItemType resource)
+        {
+            if (network == null) return;
+
+            network.Penalty(resource);
+        }
+        public ShipResource TypeToResource(ItemType type)
+        {
             // This could be done better, but it's good enough for now...
-            switch (type) {
-                case ItemType.Ammo:     return Ammo;
-                case ItemType.Fuel:     return Fuel;
-                case ItemType.Metal:    return Hull;
+            switch (type)
+            {
+                case ItemType.Ammo: return Ammo;
+                case ItemType.Fuel: return Fuel;
+                case ItemType.Metal: return Hull;
                 default: return null;
             }
         }
-
     }
 
 }
