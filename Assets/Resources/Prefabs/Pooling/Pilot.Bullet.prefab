@@ -74,6 +74,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   lifetime: 1
+  speedFuzz: 0.1
   matPlayer: {fileID: 2100000, guid: 984e6e408b4af9c40a9c8a3c74b6c212, type: 2}
   matEnemy: {fileID: 2100000, guid: cd38c254c17ad4244b97e5efc907a345, type: 2}
   renderer: {fileID: 1168653777449996640}
@@ -105,7 +106,7 @@ MonoBehaviour:
     atime6: 0
     atime7: 0
     m_Mode: 0
-    m_ColorSpace: 0
+    m_ColorSpace: -1
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
   trailGradientEnemy:
@@ -135,7 +136,7 @@ MonoBehaviour:
     atime6: 0
     atime7: 0
     m_Mode: 0
-    m_ColorSpace: 0
+    m_ColorSpace: -1
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
 --- !u!70 &-4280332405019894018

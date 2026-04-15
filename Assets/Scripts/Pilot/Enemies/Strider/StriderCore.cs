@@ -18,6 +18,8 @@ namespace Enemies.Strider {
 
         [SerializeField] private int health;
         [SerializeField] private float rotateLerpSpeed;
+        [SerializeField] private float bulletTravelSpeed = 10;
+        [SerializeField] private float bulletLifetime = 1;
 
         private void Awake() {
             _dropper = GetComponent<ItemDropper>();
@@ -40,7 +42,7 @@ namespace Enemies.Strider {
 
         public void ShootVolley(int count, float spread) {
             for (var i = 0; i < count; i++) {
-                var b = Pooling<Bullet>.Retrieve(BulletType.Enemy);
+                var b = Pooling<Bullet>.Retrieve(BulletType.Enemy, bulletTravelSpeed, bulletLifetime);
                 b.transform.position = transform.position;
                 b.transform.rotation = transform.rotation *
                                        Quaternion.Euler(0, 0, Random.Range(-spread, spread));

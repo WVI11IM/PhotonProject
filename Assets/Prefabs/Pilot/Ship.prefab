@@ -433,11 +433,103 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Pilot.ShipWeapon
   stats: {fileID: 2819457488143021183}
   bulletSpawnPoint: {fileID: 5201307387803580286}
-  spreadAngle: 10
-  pedalPressThreshold: 0.8
-  burstBulletCount: 10
-  streamChargeDuration: 0.5
-  streamDelayBetweenShots: 0.1
+  pedalDeadzone: 0.1
+  rateOfFire:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 10
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spread:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 5
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 45
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  bulletTravelSpeed:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 50
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 20
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  lifetime:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0.0042062895
+      outSlope: 0.0042062895
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.05719158
+    - serializedVersion: 3
+      time: 1
+      value: 0.5
+      inSlope: -1.7410853
+      outSlope: -1.7410853
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.032710254
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &8637529766684382311
 GameObject:
   m_ObjectHideFlags: 0
