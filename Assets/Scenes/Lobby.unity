@@ -150,7 +150,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NetworkRunnerHandler
   networkRunnerPrefab: {fileID: 193636578387969167, guid: a884817ae002ba846940b2534dc19e4a, type: 3}
   pilotPrefab:
-    RawGuidValue: d33d0c6444388c04282f2d6a1f289327
+    RawGuidValue: a5f759187d07bfd4fbab6047c523146e
   engineerPrefab:
     RawGuidValue: abbee210008f49d4280de8e5d72e23a4
   justLeftRoom: 0
