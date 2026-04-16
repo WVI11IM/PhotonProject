@@ -1,3 +1,4 @@
+using System;
 using Misc;
 using Systems;
 using UnityEngine;
@@ -46,12 +47,19 @@ namespace Pilot.Ship {
             Juice.Instance.AddShake(0.5f);
         }
 
+        public void OnCollisionEnter2D(Collision2D other) {
+            Debug.Log("Touched KillScreen! Instakill!");
+            if (other.collider.CompareTag("KillScreen"))
+                Die();
+        }
+
         public void Die() {
-            // TODO: Implement game over
             Debug.Log("Player died!");
+            gameObject.SetActive(false);
             Particles p = Pooling<Particles>.Retrieve(BulletType.Player, 0);
             p.transform.position = transform.position;
             p.transform.rotation = Quaternion.identity;
+            GameOver.Show();
         }
 
     }
