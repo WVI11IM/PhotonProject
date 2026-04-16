@@ -45,6 +45,7 @@ namespace Pilot.Ship {
             Rb.AddForce((transform.position - bullet.transform.position).normalized * hitKnockback);
             Juice.Instance.InvokeHitFreeze();
             Juice.Instance.AddShake(0.5f);
+            Juice.Instance.InvokeLogiWheelJerk(1);
         }
 
         public void OnCollisionEnter2D(Collision2D other) {

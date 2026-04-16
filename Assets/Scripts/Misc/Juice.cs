@@ -1,4 +1,5 @@
 using System.Collections;
+using Logitech;
 using UnityEngine;
 
 namespace Misc {
@@ -8,6 +9,8 @@ namespace Misc {
         private float time;
         private float shakeFactor;
         private bool hitFrozen;
+        private bool wheelJerking;
+        private float wheelJerkIntensity;
 
         [Header("Screen Shake")]
         [SerializeField] private AnimationCurve shakeIntensityMult;
@@ -17,6 +20,8 @@ namespace Misc {
         [SerializeField] private float hitFreezeDuration = 0.1f;
         [Tooltip("Minimum amount of time between hitfreezes (prevents prolonged hitfreeze when hit by multiple bullets in quick succession).")]
         [SerializeField] private float hitFreezeGrace = 0.2f;
+        [Header("Logitech")]
+        [SerializeField] private float wheelJerkDuration = 0.25f;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start() {
@@ -56,6 +61,23 @@ namespace Misc {
             yield return new WaitForSecondsRealtime(hitFreezeGrace);
             hitFrozen = false;
         }
+
+        public void InvokeLogiWheelJerk(float intensity) {
+            if (wheelJerking)
+                return;
+            wheelJerkIntensity = intensity;
+            StartCoroutine(nameof(WheelJerkCoroutine));
+        }
+
+        private IEnumerator WheelJerkCoroutine() {
+            wheelJerking = true;
+            LogitechUtil.SetSpringForce(Random.Range(-1f, 1f), wheelJerkIntensity, 1);
+            yield return new WaitForSecondsRealtime(hitFreezeDuration);
+            LogitechUtil.StopSpringForce();
+            wheelJerking = false;
+        }
+
+
 
     }
 

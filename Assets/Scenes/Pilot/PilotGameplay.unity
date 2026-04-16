@@ -1548,6 +1548,42 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: pullForce
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: <RangeDistanceFalloff>k__BackingField.m_Curve.Array.data[1].time
+      value: 0.9984741
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: <RangeDistanceFalloff>k__BackingField.m_Curve.Array.data[1].value
+      value: 19.96885
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: <RangeDistanceFalloff>k__BackingField.m_Curve.Array.data[0].inSlope
+      value: 24.75273
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: <RangeDistanceFalloff>k__BackingField.m_Curve.Array.data[1].inSlope
+      value: 13.908931
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: <RangeDistanceFalloff>k__BackingField.m_Curve.Array.data[0].outSlope
+      value: 24.75273
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: <RangeDistanceFalloff>k__BackingField.m_Curve.Array.data[1].inWeight
+      value: 0.056075007
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: <RangeDistanceFalloff>k__BackingField.m_Curve.Array.data[1].outSlope
+      value: 13.908931
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: <RangeDistanceFalloff>k__BackingField.m_Curve.Array.data[0].outWeight
+      value: 0.049154762
+      objectReference: {fileID: 0}
     - target: {fileID: 7666322094144323372, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
       propertyPath: m_Name
       value: Ship
@@ -1607,7 +1643,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 183100724833226137, guid: 53ff784ca52b1fb41ab0b0f2087951f0, type: 3}
       propertyPath: field of view
-      value: 45.143124
+      value: 56.2788
       objectReference: {fileID: 0}
     - target: {fileID: 494664665859555482, guid: 53ff784ca52b1fb41ab0b0f2087951f0, type: 3}
       propertyPath: m_Name

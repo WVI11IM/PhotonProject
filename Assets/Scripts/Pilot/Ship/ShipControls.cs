@@ -1,3 +1,4 @@
+using System;
 using Logitech;
 using UnityEngine;
 
@@ -21,10 +22,16 @@ namespace Pilot.Ship {
         // How much to reduce the boost force depending on how much fuel is left.
         [SerializeField] private AnimationCurve boostForceFuelFalloff;
 
+        private bool disabledSpring;
+
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start() {
             
-            LogitechUtil.SetSpringForce(0, 0, 0);
+        }
+
+        private void Update() {
+            if (!disabledSpring)
+                disabledSpring = LogitechUtil.StopSpringForce();
         }
 
         // Update is called once per frame

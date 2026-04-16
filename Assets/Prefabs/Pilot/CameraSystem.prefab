@@ -514,6 +514,7 @@ MonoBehaviour:
   shakeDecay: 2
   hitFreezeDuration: 0.2
   hitFreezeGrace: 0.1
+  wheelJerkDuration: 0.025
 --- !u!81 &908090138642242276
 AudioListener:
   m_ObjectHideFlags: 0

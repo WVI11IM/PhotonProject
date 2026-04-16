@@ -110,7 +110,7 @@ namespace Logitech {
         /// Returns how far the clutch has been depressed, from 0 (resting position) to 1 (fully pressed).
         /// </summary>
         public static float AxisPedalClutch         => 
-            (!Wheel ? 0 : AbsoluteIntToPercent(Instance._joyStatus.rglSlider[0])) + EmulatedClutch;
+            (!Wheel || Instance._joyStatus.rglSlider == null ? 0 : AbsoluteIntToPercent(Instance._joyStatus.rglSlider[0])) + EmulatedClutch;
         #endregion
 
         #region Config
@@ -301,15 +301,34 @@ namespace Logitech {
         /// <param name="angle">The angle the wheel should spring to</param>
         /// <param name="saturation">The saturation of the spring force (refer to LogiSDK documentation)</param>
         /// <param name="coefficient">The coefficient of the spring force (refer to LogiSDK documentation)</param>
-        public static void SetSpringForce(float angle, float saturation, float coefficient) {
-            if (!Wheel)
-                return;
+        public static bool SetSpringForce(float angle, float saturation, float coefficient) {
+            if (!Wheel) {
+                if (Config.loggingMode >= LogitechUtilConfig.LoggingModes.Normal)
+                    Debug.LogWarning("Could not set spring force; no wheel available.");
+                return false;
+            }
             LogitechGSDK.LogiPlaySpringForce(
                 0, 
                 Mathf.RoundToInt(angle * 100), 
                 Mathf.RoundToInt(saturation * 100), 
                 Mathf.RoundToInt(coefficient * 100)
             );
+
+            return true;
+        }
+
+        public static bool StopSpringForce() {
+            
+            if (!Wheel) {
+                if (Config.loggingMode >= LogitechUtilConfig.LoggingModes.Normal)
+                    Debug.LogWarning("Could not set spring force; no wheel available.");
+                return false;
+            }
+
+            LogitechGSDK.LogiStopSpringForce(0);
+
+            return true;
+            
         }
 
     }
