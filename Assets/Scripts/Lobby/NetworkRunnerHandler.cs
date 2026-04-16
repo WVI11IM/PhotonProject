@@ -32,7 +32,9 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
     //Index of session room scene
     public const int ROOM_SCENE_INDEX = 1;
     //Index of engineer scene
-    public const int GAMEPLAY_SCENE_INDEX = 2;
+    public const int ENGINEER_SCENE_INDEX = 2;
+    //Index of pilot scene
+    public const int PILOT_SCENE_INDEX = 3;
 
     private void Awake()
     {
@@ -155,7 +157,7 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
         player.RPC_KickPlayer();
     }
 
-    public async void StartGame()
+    public void StartGame()
     {
         if (!networkRunner.IsSharedModeMasterClient)
             return;
@@ -165,9 +167,6 @@ public class NetworkRunnerHandler : MonoBehaviour, INetworkRunnerCallbacks
         {
             p.RPC_SetGameplayActive();
         }
-        await System.Threading.Tasks.Task.Delay(200);
-
-        await networkRunner.LoadScene(SceneRef.FromIndex(GAMEPLAY_SCENE_INDEX));
     }
 
     //Coroutine that waits for both Pilot and Engineer to exist in scene

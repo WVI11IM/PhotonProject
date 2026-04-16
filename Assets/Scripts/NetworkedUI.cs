@@ -15,14 +15,17 @@ public class NetworkedUI : NetworkBehaviour
 
     public override void Render()
     {
-        if (SceneManager.GetActiveScene().buildIndex != NetworkRunnerHandler.GAMEPLAY_SCENE_INDEX) return;
-
         //Only turn on the UI if it's the owner and it's not already visible
         if (Object != null && Object.HasInputAuthority && !uiVisible)
         {
-            uiVisible = true;
-            SetUIState(true);
-            Debug.Log($"[UI] Authority confirmed for {gameObject.name}. Enabling UI.");
+            var player = GetComponentInParent<PlayerNetwork>();
+
+            if (player != null && player.IsGameplayActive)
+            {
+                uiVisible = true;
+                SetUIState(true);
+                Debug.Log($"[UI] Authority confirmed for {gameObject.name}. Enabling UI.");
+            }
         }
     }
 
