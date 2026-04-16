@@ -1,8 +1,10 @@
+using Pilot;
+
 namespace Systems {
 
     public interface IDamageable {
 
-        public void TakeDamage();
+        public void TakeDamage(Bullet bullet);
 
     }
 

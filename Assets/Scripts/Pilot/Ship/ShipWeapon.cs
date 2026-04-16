@@ -1,4 +1,5 @@
 using Logitech;
+using Misc;
 using Systems;
 using UnityEngine;
 
@@ -36,6 +37,7 @@ namespace Pilot.Ship {
         }
 
         private void FireSingleBullet(float sa, float bs, float lt) {
+            Juice.Instance.AddShake(0.05f);
             if (Core.Stats.Ammo.Current <= 0)
                 return;
             Core.Stats.Ammo.Consume(1);

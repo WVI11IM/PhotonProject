@@ -1,4 +1,5 @@
 using System;
+using Misc;
 using Pilot;
 using Pilot.Enemies;
 using Pilot.Ship;
@@ -20,6 +21,7 @@ namespace Enemies.Strider {
         [SerializeField] private float rotateLerpSpeed;
         [SerializeField] private float bulletTravelSpeed = 10;
         [SerializeField] private float bulletLifetime = 1;
+        [SerializeField] private float hitKnockback;
 
         private void Awake() {
             _dropper = GetComponent<ItemDropper>();
@@ -47,17 +49,24 @@ namespace Enemies.Strider {
                 b.transform.rotation = transform.rotation *
                                        Quaternion.Euler(0, 0, Random.Range(-spread, spread));
             }
+            Juice.Instance.AddShake(0.2f);
         }
 
-        public void TakeDamage() {
+        public void TakeDamage(Bullet bullet) {
             health--;
             if (health <= 0)
                 Die();
+            Rb.AddForce((transform.position - bullet.transform.position).normalized * hitKnockback);
         }
 
         private void Die() {
             _dropper.DropItems();
             Stash();
+            Juice.Instance.AddShake(0.6f);
+            Juice.Instance.InvokeHitFreeze();
+            Particles p = Pooling<Particles>.Retrieve(BulletType.Enemy, 0);
+            p.transform.position = transform.position;
+            p.transform.rotation = Quaternion.identity;
         }
 
         protected override void Initialize(params object[] p) {

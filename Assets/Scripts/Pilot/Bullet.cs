@@ -51,8 +51,14 @@ namespace Pilot {
             if ((!other.CompareTag("Player") || type != BulletType.Enemy) &&
                 (!other.CompareTag("Enemy") || type != BulletType.Player)) return;
             // Apply damage
-            if (other.GetComponent<IDamageable>() != null)
-                other.GetComponent<IDamageable>().TakeDamage();
+            if (other.GetComponent<IDamageable>() != null) {
+                other.GetComponent<IDamageable>().TakeDamage(this);
+                Particles p = Pooling<Particles>.Retrieve(type == BulletType.Enemy ? BulletType.Player : type == BulletType.Player ? BulletType.Enemy : -1, 1);
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, transform.up);
+                p.transform.position = hit.point;
+                p.transform.rotation = Quaternion.LookRotation(Vector3.up, hit.normal);
+            }
+
             DeleteBullet();
         }
 
