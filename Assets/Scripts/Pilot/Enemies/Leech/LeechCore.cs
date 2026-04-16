@@ -1,4 +1,5 @@
 using System;
+using Misc;
 using Pilot;
 using Pilot.Enemies;
 using Pilot.Ship;
@@ -28,6 +29,7 @@ namespace Enemies.Leech {
         [SerializeField] private float rotationLerpSpeed;
         [SerializeField] private float spinPerVelocityMult;
         [SerializeField] private AnimationCurve squashAndStretchPerVelocity;
+        [SerializeField] private float hitKnockback;
         private float lerpTo;
 
         public Rigidbody2D Rb {
@@ -79,15 +81,21 @@ namespace Enemies.Leech {
             Rb.AddForce(dir * boostForce);
         }
 
-        public void TakeDamage() {
+        public void TakeDamage(Bullet bullet) {
             health--;
             if (health <= 0)
                 Die();
+            Rb.AddForce((transform.position - bullet.transform.position).normalized * hitKnockback);
         }
 
         private void Die() {
             _dropper.DropItems();
             Stash();
+            Particles p = Pooling<Particles>.Retrieve(BulletType.Enemy, 0);
+            p.transform.position = transform.position;
+            p.transform.rotation = Quaternion.identity;
+            Juice.Instance.AddShake(0.6f);
+            Juice.Instance.InvokeHitFreeze();
         }
 
         protected override void Initialize(params object[] p) {
