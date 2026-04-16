@@ -1,4 +1,5 @@
 using System;
+using Misc;
 using Pilot;
 using Pilot.Enemies;
 using Pilot.Ship;
@@ -90,6 +91,8 @@ namespace Enemies.Leech {
         private void Die() {
             _dropper.DropItems();
             Stash();
+            Juice.Instance.AddShake(0.6f);
+            Juice.Instance.InvokeHitFreeze();
         }
 
         protected override void Initialize(params object[] p) {

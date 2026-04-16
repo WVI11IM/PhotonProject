@@ -1,4 +1,5 @@
 using System;
+using Misc;
 using Pilot;
 using Pilot.Enemies;
 using Pilot.Ship;
@@ -48,6 +49,7 @@ namespace Enemies.Strider {
                 b.transform.rotation = transform.rotation *
                                        Quaternion.Euler(0, 0, Random.Range(-spread, spread));
             }
+            Juice.Instance.AddShake(0.2f);
         }
 
         public void TakeDamage(Bullet bullet) {
@@ -60,6 +62,8 @@ namespace Enemies.Strider {
         private void Die() {
             _dropper.DropItems();
             Stash();
+            Juice.Instance.AddShake(0.6f);
+            Juice.Instance.InvokeHitFreeze();
         }
 
         protected override void Initialize(params object[] p) {

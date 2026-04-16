@@ -1,3 +1,4 @@
+using Misc;
 using Systems;
 using UnityEngine;
 
@@ -39,6 +40,8 @@ namespace Pilot.Ship {
         public void TakeDamage(Bullet bullet) {
             Stats.Hull.Consume(hullConsumptionPerHit);
             Rb.AddForce((transform.position - bullet.transform.position).normalized * hitKnockback);
+            Juice.Instance.InvokeHitFreeze();
+            Juice.Instance.AddShake(0.5f);
         }
 
     }
