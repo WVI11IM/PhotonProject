@@ -2,20 +2,11 @@ using Logitech;
 using UnityEngine;
 
 namespace Pilot.Ship {
-
-    public enum SteeringMode {
-
-        CLASSIC_VELOCITY,
-        ABSOLUTE_ANGLE
-
-    }
     
     [AddComponentMenu("")]
     public class ShipControls : ShipComponent {
 
         [SerializeField] private ShipStats stats;
-
-        [SerializeField] private SteeringMode steeringMode;
 
         [SerializeField] private float fuelConsumptionFactor;
 
@@ -32,18 +23,14 @@ namespace Pilot.Ship {
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start() {
+            
+            LogitechUtil.SetSpringForce(0, 0, 0);
         }
 
         // Update is called once per frame
         void FixedUpdate() {
-            if (steeringMode == SteeringMode.CLASSIC_VELOCITY) {
-                // Steering rotation (apply torque according to steering wheel rotation)
-                Core.Rb.AddTorque(LogitechUtil.WheelAxis * -steerForce * Time.fixedDeltaTime);
-                LogitechUtil.SetSpringForce(0, 1, 1);
-            } else {
-                Core.Rb.MoveRotation(-LogitechUtil.WheelAxisDegrees);
-                LogitechUtil.SetSpringForce(0, 0, 0);
-            }
+            
+            Core.Rb.MoveRotation(-LogitechUtil.WheelAxisDegrees);
 
             if (Core.Stats.Fuel.Current <= 0)
                 return;

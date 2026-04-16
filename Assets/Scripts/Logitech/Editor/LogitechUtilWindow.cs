@@ -9,7 +9,7 @@ namespace Logitech {
 
     public class LogitechUtilWindow : EditorWindow {
 
-        private bool _showConfig;
+        private bool _showConfig = true;
         private bool _showValues;
         private bool _showEmulatedValues;
         private LogitechUtilConfig Config => LogitechUtil.Config;
@@ -37,6 +37,9 @@ namespace Logitech {
             _showConfig = EditorGUILayout.Foldout(_showConfig, "Config");
 
             if (_showConfig) {
+
+                Config.loggingMode = (LogitechUtilConfig.LoggingModes)EditorGUILayout.EnumPopup("Logging Mode", Config.loggingMode);
+                
                 Config.attemptWheelInitAtRuntime = EditorGUILayout.Toggle(
                     new GUIContent("Re-init wheel at runtime",
                         "Whether to constantly re-attempt wheel initialization at runtime if initialization failed on start."),

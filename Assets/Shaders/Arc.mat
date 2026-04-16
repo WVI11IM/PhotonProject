@@ -131,10 +131,10 @@ Material:
     - _WorkflowMode: 1
     - _XRMotionVectorsPass: 1
     - _ZWrite: 1
-    - _endAngle: 31.6692
+    - _endAngle: 90
     - _innerRadius: 1.25
-    - _outerRadius: 6.1076455
-    - _startAngle: -31.6692
+    - _outerRadius: 0.5
+    - _startAngle: -90
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 0, g: 0.8512273, b: 1, a: 1}
