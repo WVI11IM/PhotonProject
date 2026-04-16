@@ -38,6 +38,7 @@ namespace Pilot.Ship {
 
         private void FireSingleBullet(float sa, float bs, float lt) {
             Juice.Instance.AddShake(0.05f);
+            Juice.Instance.InvokeLogiWheelJerk(0.5f);
             if (Core.Stats.Ammo.Current <= 0)
                 return;
             Core.Stats.Ammo.Consume(1);

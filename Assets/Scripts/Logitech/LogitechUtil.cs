@@ -73,40 +73,44 @@ namespace Logitech {
         #endregion
         
         #region Properties // TODO: Override default values when wheel is missing, as without the wheel they default to 0.5
+
+        public static bool Wheel => 
+            Instance != null && 
+            _sdkInitialized && 
+            LogitechGSDK.LogiIsDeviceConnected(0, LogitechGSDK.LOGI_DEVICE_TYPE_WHEEL);
+
         /// <summary>
         /// Returns the wheel's rotation relative to its physical range of movement (-1.0 to 1.0)
         /// </summary>
         public static float WheelAxis               => 
             // Steering wheel value
-            (Instance == null ? 0 : Instance._joyStatus.lX / (float)Int16.MaxValue) +
-            // Keyboard emulation value (if enabled, else zero)
-            (Config.useKeyboardEmulation ? EmulatedWheel : 0);
+            (!Wheel ? 0 : Instance._joyStatus.lX / (float)Int16.MaxValue) + EmulatedWheel;
         /// <summary>
         /// 
         /// Returns the number of revolutions the wheel has made (-1.5 to 1.5)
         /// </summary>
         public static float WheelAxisRevolutions    => 
-            (Instance == null ? 0 : WheelAxis / 1.25f);
+            WheelAxis / 1.25f;
         /// <summary>
         /// Returns the wheel's rotation in degrees (-540.0 to 540.0)
         /// </summary>
         public static float WheelAxisDegrees        => 
-            (Instance == null ? 0 : WheelAxis * 450);
+            WheelAxis * 450;
         /// <summary>
         /// Returns how far the accelerator has been depressed, from 0 (resting position) to 1 (fully pressed).
         /// </summary>
         public static float AxisPedalAccelerator    => 
-            (Instance == null || !_sdkInitialized ? 0 : AbsoluteIntToPercent(Instance._joyStatus.lY)) + EmulatedAccelerator;
+            (!Wheel ? 0 : AbsoluteIntToPercent(Instance._joyStatus.lY)) + EmulatedAccelerator;
         /// <summary>
         /// Returns how far the brake has been depressed, from 0 (resting position) to 1 (fully pressed).
         /// </summary>
         public static float AxisPedalBrake          => 
-            (Instance == null || !_sdkInitialized ? 0 : AbsoluteIntToPercent(Instance._joyStatus.lRz)) + EmulatedBrake;
+            (!Wheel ? 0 : AbsoluteIntToPercent(Instance._joyStatus.lRz)) + EmulatedBrake;
         /// <summary>
         /// Returns how far the clutch has been depressed, from 0 (resting position) to 1 (fully pressed).
         /// </summary>
         public static float AxisPedalClutch         => 
-            (Instance._joyStatus.rglSlider == null || !_sdkInitialized ? 0 : AbsoluteIntToPercent(Instance._joyStatus.rglSlider[0])) + EmulatedClutch;
+            (!Wheel || Instance._joyStatus.rglSlider == null ? 0 : AbsoluteIntToPercent(Instance._joyStatus.rglSlider[0])) + EmulatedClutch;
         #endregion
 
         #region Config
@@ -119,7 +123,8 @@ namespace Logitech {
                     // Try to load a config from resources
                     if (Resources.Load(ConfigName) is LogitechUtilConfig) {
                         _config = (LogitechUtilConfig)Resources.Load(ConfigName);
-                        Debug.Log("Loaded config.");
+                        if (Config.loggingMode == LogitechUtilConfig.LoggingModes.Verbose)
+                            Debug.Log("Loaded config.");
                         // If no such resource exists
                     } else {
                         // Create one, if in the editor
@@ -149,23 +154,27 @@ namespace Logitech {
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start() {
-            
-            Debug.Log("Initializing LogiSteering...");
+
+            if (Config.loggingMode >= LogitechUtilConfig.LoggingModes.Normal)
+                Debug.Log("Initializing LogiSteering...");
 
             // [Attempt to] initialize Logitech Steering
             try {
                 if (LogitechGSDK.LogiSteeringInitialize(true)) {
-                    Debug.Log("Successfully initialized LogiSteering.");
+                    if (Config.loggingMode >= LogitechUtilConfig.LoggingModes.Normal)
+                        Debug.Log("Successfully initialized LogiSteering.");
                     _sdkInitialized = true;
-                } else
+                } else if (Config.loggingMode >= LogitechUtilConfig.LoggingModes.ErrorsOnly)
                     Debug.LogError("Failed to initialize LogiSteering!");
             } catch (DllNotFoundException e) {
                 // ignored
-                Debug.LogError("LogiSDK DLL missing!");
+                if (Config.loggingMode >= LogitechUtilConfig.LoggingModes.ErrorsOnly)
+                    Debug.LogError("LogiSDK DLL missing!");
                 _lastPrintedException = e;
             } catch (Exception e) {
                 // ignored
-                Debug.LogError($"Unknown exception while initializing LogiSteering:\n{e}");
+                if (Config.loggingMode >= LogitechUtilConfig.LoggingModes.ErrorsOnly)
+                    Debug.LogError($"Unknown exception while initializing LogiSteering:\n{e}");
             }
 
             // Cache actions on start to avoid expensive FindAction method calls during gameplay
@@ -178,50 +187,90 @@ namespace Logitech {
 
         // Update is called once per frame
         void Update() {
+
+            if (Config.loggingMode == LogitechUtilConfig.LoggingModes.Verbose) {
+
+                Debug.Log(
+                    $"Status: SDK {_sdkInitialized}, Wheel Connected {LogitechGSDK.LogiIsDeviceConnected(0, LogitechGSDK.LOGI_DEVICE_TYPE_WHEEL)}, Wheel: {Wheel}");
+
+                if (_joyStatus.rglSlider != null)
+                    for (int i = 0; i < _joyStatus.rglSlider.Length; i++)
+                        Debug.Log($"RGL Slider {i} {Instance._joyStatus.rglSlider[i]}");
+
+                Debug.Log($"lX {Instance._joyStatus.lX}");
+                Debug.Log($"lY {Instance._joyStatus.lY}");
+                Debug.Log($"lZ {Instance._joyStatus.lZ}");
+                Debug.Log($"lRX {Instance._joyStatus.lRx}");
+                Debug.Log($"lRY {Instance._joyStatus.lRy}");
+                Debug.Log($"lRZ {Instance._joyStatus.lRz}");
+
+            }
+
             if (Config.useKeyboardEmulation) {
-                EmulatedWheel = Mathf.Clamp(EmulatedWheel + _isActionWheel.ReadValue<float>() * Time.deltaTime, -1 ,1);
+                
+                EmulatedWheel = Mathf.Clamp(EmulatedWheel + _isActionWheel.ReadValue<float>() * Time.deltaTime, -1, 1);
+                
                 EmulatedAccelerator -= Time.deltaTime;
                 EmulatedAccelerator = Mathf.Clamp01(EmulatedAccelerator + _isActionAccelerator.ReadValue<float>() * Time.deltaTime * 2);
+
                 EmulatedBrake -= Time.deltaTime;
                 EmulatedBrake = Mathf.Clamp01(EmulatedBrake + _isActionBrake.ReadValue<float>() * Time.deltaTime * 2);
+                
                 EmulatedClutch -= Time.deltaTime;
                 EmulatedClutch = Mathf.Clamp01(EmulatedClutch + _isActionClutch.ReadValue<float>() * Time.deltaTime * 2);
+            
             } else {
-                // For the sake of simplicity, we'll only check if the first device is a steering wheel. A more robust system should detect if *any* connected devices is a steering wheel.
-                if (_sdkInitialized && LogitechGSDK.LogiIsDeviceConnected(0, LogitechGSDK.LOGI_DEVICE_TYPE_WHEEL)) {
-                    // Update Logi API
-                    LogitechGSDK.LogiUpdate();
+                
+                EmulatedWheel = 0;
+                EmulatedAccelerator = 0;
+                EmulatedBrake = 0;
+                EmulatedClutch = 0;
+                
+            }
 
-                    // Get wheel status, stored in a JOYSTATES2ENGINES struct
-                    _joyStatus = LogitechGSDK.LogiGetStateUnity(0); // Gets the joystick status (e.g. wheel angle, etc.)
-                } else {
+            // For the sake of simplicity, we'll only check if the first device is a steering wheel. A more robust system should detect if *any* connected devices is a steering wheel.
+            if (Wheel) {
+                
+                // Update Logi API
+                LogitechGSDK.LogiUpdate();
 
-                    // Attempt to initialize logi steering
-                    if (Config.attemptWheelInitAtRuntime) {
-                        try {
-                            if (LogitechGSDK.LogiSteeringInitialize(true)) {
+                // Get wheel status, stored in a JOYSTATES2ENGINES struct
+                _joyStatus = LogitechGSDK.LogiGetStateUnity(0); // Gets the joystick status (e.g. wheel angle, etc.)
+
+                if (Config.loggingMode >= LogitechUtilConfig.LoggingModes.Verbose)
+                    Debug.Log("Updated LogiSDK JoyStatus");
+
+            } else if (!_sdkInitialized) {
+
+                // Attempt to initialize logi steering
+                if (Config.attemptWheelInitAtRuntime) {
+                    try {
+                        if (LogitechGSDK.LogiSteeringInitialize(true)) {
+                            if (Config.loggingMode >= LogitechUtilConfig.LoggingModes.Normal)
                                 Debug.Log("Successfully initialized LogiSteering.");
-                                _sdkInitialized = true;
-                            } else if (_lastPrintedException != null) {
+                            _sdkInitialized = true;
+                        } else if (_lastPrintedException != null) {
+                            if (Config.loggingMode >= LogitechUtilConfig.LoggingModes.ErrorsOnly)
                                 Debug.LogError("Failed to initialize LogiSteering!");
-                                _lastPrintedException = null;
-                            }
-                        }
-                        catch (DllNotFoundException e) {
-                            if (_lastPrintedException is not DllNotFoundException) {
-                                Debug.LogError("LogiSDK DLL missing!");
-                                _lastPrintedException = e;
-                            }
-                        }
-                        catch (Exception e) {
-                            if (_lastPrintedException != e) {
-                                Debug.LogWarning("No steering wheel connected.");
-                                _lastPrintedException = e;
-                            }
+                            _lastPrintedException = null;
                         }
                     }
-
+                    catch (DllNotFoundException e) {
+                        if (_lastPrintedException is not DllNotFoundException) {
+                            if (Config.loggingMode >= LogitechUtilConfig.LoggingModes.ErrorsOnly)
+                                Debug.LogError("LogiSDK DLL missing!");
+                            _lastPrintedException = e;
+                        }
+                    }
+                    catch (Exception e) {
+                        if (_lastPrintedException != e) {
+                            if (Config.loggingMode >= LogitechUtilConfig.LoggingModes.Normal)
+                            Debug.LogWarning("No steering wheel connected.");
+                            _lastPrintedException = e;
+                        }
+                    }
                 }
+
             }
         }
 
@@ -252,15 +301,34 @@ namespace Logitech {
         /// <param name="angle">The angle the wheel should spring to</param>
         /// <param name="saturation">The saturation of the spring force (refer to LogiSDK documentation)</param>
         /// <param name="coefficient">The coefficient of the spring force (refer to LogiSDK documentation)</param>
-        public static void SetSpringForce(float angle, float saturation, float coefficient) {
-            if (!_sdkInitialized || LogitechGSDK.LogiIsDeviceConnected(0, LogitechGSDK.LOGI_DEVICE_TYPE_WHEEL))
-                return;
+        public static bool SetSpringForce(float angle, float saturation, float coefficient) {
+            if (!Wheel) {
+                if (Config.loggingMode >= LogitechUtilConfig.LoggingModes.Normal)
+                    Debug.LogWarning("Could not set spring force; no wheel available.");
+                return false;
+            }
             LogitechGSDK.LogiPlaySpringForce(
                 0, 
                 Mathf.RoundToInt(angle * 100), 
                 Mathf.RoundToInt(saturation * 100), 
                 Mathf.RoundToInt(coefficient * 100)
             );
+
+            return true;
+        }
+
+        public static bool StopSpringForce() {
+            
+            if (!Wheel) {
+                if (Config.loggingMode >= LogitechUtilConfig.LoggingModes.Normal)
+                    Debug.LogWarning("Could not set spring force; no wheel available.");
+                return false;
+            }
+
+            LogitechGSDK.LogiStopSpringForce(0);
+
+            return true;
+            
         }
 
     }

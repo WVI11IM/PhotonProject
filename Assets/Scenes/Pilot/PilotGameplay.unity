@@ -833,7 +833,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: ecd8ed6140a0b7b479273dfc805cea65, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.09803922}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.19607843}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -851,8 +851,8 @@ Transform:
   m_GameObject: {fileID: 1083657743}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 118.6, z: 50}
-  m_LocalScale: {x: 4.6, y: 4.6, z: 4.6}
+  m_LocalPosition: {x: 0, y: 205, z: 100}
+  m_LocalScale: {x: 7.5000005, y: 7.5000005, z: 7.5000005}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -1548,6 +1548,42 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: pullForce
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: <RangeDistanceFalloff>k__BackingField.m_Curve.Array.data[1].time
+      value: 0.9984741
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: <RangeDistanceFalloff>k__BackingField.m_Curve.Array.data[1].value
+      value: 19.96885
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: <RangeDistanceFalloff>k__BackingField.m_Curve.Array.data[0].inSlope
+      value: 24.75273
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: <RangeDistanceFalloff>k__BackingField.m_Curve.Array.data[1].inSlope
+      value: 13.908931
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: <RangeDistanceFalloff>k__BackingField.m_Curve.Array.data[0].outSlope
+      value: 24.75273
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: <RangeDistanceFalloff>k__BackingField.m_Curve.Array.data[1].inWeight
+      value: 0.056075007
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: <RangeDistanceFalloff>k__BackingField.m_Curve.Array.data[1].outSlope
+      value: 13.908931
+      objectReference: {fileID: 0}
+    - target: {fileID: 2466661913120708525, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: <RangeDistanceFalloff>k__BackingField.m_Curve.Array.data[0].outWeight
+      value: 0.049154762
+      objectReference: {fileID: 0}
     - target: {fileID: 7666322094144323372, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
       propertyPath: m_Name
       value: Ship
@@ -1605,6 +1641,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 183100724833226137, guid: 53ff784ca52b1fb41ab0b0f2087951f0, type: 3}
+      propertyPath: field of view
+      value: 56.2788
+      objectReference: {fileID: 0}
     - target: {fileID: 494664665859555482, guid: 53ff784ca52b1fb41ab0b0f2087951f0, type: 3}
       propertyPath: m_Name
       value: CameraSystem
