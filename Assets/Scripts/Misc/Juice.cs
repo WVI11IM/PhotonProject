@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Misc {
 
-    public class Juice : Singleton<Juice> {
+    public class Juice : Systems.Singleton<Juice> {
 
         private float time;
         private float shakeFactor;
