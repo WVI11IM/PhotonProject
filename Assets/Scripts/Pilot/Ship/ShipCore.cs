@@ -39,9 +39,19 @@ namespace Pilot.Ship {
 
         public void TakeDamage(Bullet bullet) {
             Stats.Hull.Consume(hullConsumptionPerHit);
+            if (Stats.Hull.Current <= 0)
+                Die();
             Rb.AddForce((transform.position - bullet.transform.position).normalized * hitKnockback);
             Juice.Instance.InvokeHitFreeze();
             Juice.Instance.AddShake(0.5f);
+        }
+
+        public void Die() {
+            // TODO: Implement game over
+            Debug.Log("Player died!");
+            Particles p = Pooling<Particles>.Retrieve(BulletType.Player, 0);
+            p.transform.position = transform.position;
+            p.transform.rotation = Quaternion.identity;
         }
 
     }

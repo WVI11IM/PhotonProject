@@ -91,6 +91,9 @@ namespace Enemies.Leech {
         private void Die() {
             _dropper.DropItems();
             Stash();
+            Particles p = Pooling<Particles>.Retrieve(BulletType.Enemy, 0);
+            p.transform.position = transform.position;
+            p.transform.rotation = Quaternion.identity;
             Juice.Instance.AddShake(0.6f);
             Juice.Instance.InvokeHitFreeze();
         }

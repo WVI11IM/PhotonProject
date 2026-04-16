@@ -64,6 +64,9 @@ namespace Enemies.Strider {
             Stash();
             Juice.Instance.AddShake(0.6f);
             Juice.Instance.InvokeHitFreeze();
+            Particles p = Pooling<Particles>.Retrieve(BulletType.Enemy, 0);
+            p.transform.position = transform.position;
+            p.transform.rotation = Quaternion.identity;
         }
 
         protected override void Initialize(params object[] p) {
