@@ -16,8 +16,6 @@ namespace Pilot.Ship {
         [SerializeField] private ShipStats stats;
 
         [SerializeField] private SteeringMode steeringMode;
-        
-        private Rigidbody2D _rb;
 
         [SerializeField] private float fuelConsumptionFactor;
 
@@ -34,17 +32,16 @@ namespace Pilot.Ship {
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start() {
-            _rb = GetComponent<Rigidbody2D>();
         }
 
         // Update is called once per frame
         void FixedUpdate() {
             if (steeringMode == SteeringMode.CLASSIC_VELOCITY) {
                 // Steering rotation (apply torque according to steering wheel rotation)
-                _rb.AddTorque(LogitechUtil.WheelAxis * -steerForce * Time.fixedDeltaTime);
+                Core.Rb.AddTorque(LogitechUtil.WheelAxis * -steerForce * Time.fixedDeltaTime);
                 LogitechUtil.SetSpringForce(0, 1, 1);
             } else {
-                _rb.MoveRotation(-LogitechUtil.WheelAxisDegrees);
+                Core.Rb.MoveRotation(-LogitechUtil.WheelAxisDegrees);
                 LogitechUtil.SetSpringForce(0, 0, 0);
             }
 
@@ -58,7 +55,7 @@ namespace Pilot.Ship {
                 Time.fixedDeltaTime;
 
             // Acceleration boost 
-            _rb.AddForce(
+            Core.Rb.AddForce(
                 boostForce * // ...plus the force multiplier...
                 fuelFactor * // ...plues the fuel factor...
                 transform.up); // ...to move in the direction the gun is pointing.

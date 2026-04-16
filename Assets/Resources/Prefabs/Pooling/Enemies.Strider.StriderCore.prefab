@@ -137,7 +137,8 @@ MonoBehaviour:
   health: 10
   rotateLerpSpeed: 20
   bulletTravelSpeed: 25
-  bulletLifetime: 0.4
+  bulletLifetime: 0.75
+  hitKnockback: 250
 --- !u!114 &1754253593391128605
 MonoBehaviour:
   m_ObjectHideFlags: 0

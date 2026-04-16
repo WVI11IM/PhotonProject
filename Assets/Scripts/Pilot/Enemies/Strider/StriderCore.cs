@@ -20,6 +20,7 @@ namespace Enemies.Strider {
         [SerializeField] private float rotateLerpSpeed;
         [SerializeField] private float bulletTravelSpeed = 10;
         [SerializeField] private float bulletLifetime = 1;
+        [SerializeField] private float hitKnockback;
 
         private void Awake() {
             _dropper = GetComponent<ItemDropper>();
@@ -49,10 +50,11 @@ namespace Enemies.Strider {
             }
         }
 
-        public void TakeDamage() {
+        public void TakeDamage(Bullet bullet) {
             health--;
             if (health <= 0)
                 Die();
+            Rb.AddForce((transform.position - bullet.transform.position).normalized * hitKnockback);
         }
 
         private void Die() {

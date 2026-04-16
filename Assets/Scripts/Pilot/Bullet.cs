@@ -52,7 +52,7 @@ namespace Pilot {
                 (!other.CompareTag("Enemy") || type != BulletType.Player)) return;
             // Apply damage
             if (other.GetComponent<IDamageable>() != null)
-                other.GetComponent<IDamageable>().TakeDamage();
+                other.GetComponent<IDamageable>().TakeDamage(this);
             DeleteBullet();
         }
 

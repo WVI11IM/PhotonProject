@@ -262,6 +262,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pilot.ShipCore
   hullConsumptionPerHit: 5
+  hitKnockback: 100
 --- !u!114 &4326035717128083751
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -326,6 +327,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4fe0091937b1d4571a5de76ab1172ac1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pilot.ShipStats
+  network: {fileID: 0}
   <Fuel>k__BackingField:
     <Current>k__BackingField: 0
     <Max>k__BackingField: 100

@@ -28,6 +28,7 @@ namespace Enemies.Leech {
         [SerializeField] private float rotationLerpSpeed;
         [SerializeField] private float spinPerVelocityMult;
         [SerializeField] private AnimationCurve squashAndStretchPerVelocity;
+        [SerializeField] private float hitKnockback;
         private float lerpTo;
 
         public Rigidbody2D Rb {
@@ -79,10 +80,11 @@ namespace Enemies.Leech {
             Rb.AddForce(dir * boostForce);
         }
 
-        public void TakeDamage() {
+        public void TakeDamage(Bullet bullet) {
             health--;
             if (health <= 0)
                 Die();
+            Rb.AddForce((transform.position - bullet.transform.position).normalized * hitKnockback);
         }
 
         private void Die() {
