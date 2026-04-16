@@ -2,6 +2,7 @@ using Pilot;
 using Systems;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Misc {
 
@@ -22,8 +23,11 @@ namespace Misc {
         void Update() { }
 
         public void VineBoom() {
-            Juice.Instance.AddShake(1f);
-            Juice.Instance.InvokeHitFreeze();
+            if (Juice.Instance != null)
+            {
+                Juice.Instance.AddShake(1f);
+                Juice.Instance.InvokeHitFreeze();
+            }
         }
 
         public void Particles(int which) {
@@ -33,8 +37,9 @@ namespace Misc {
             p.transform.localRotation = Quaternion.identity;
         }
 
-        [MenuItem("Debug/Show Game Over")]
+        //[MenuItem("Debug/Show Game Over")]
         public static void Show() {
+            Debug.Log("Starting game over animation");
             Instance.anim.SetTrigger(animTriggerShow);
         }
 

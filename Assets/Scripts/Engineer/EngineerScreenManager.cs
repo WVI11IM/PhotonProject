@@ -21,6 +21,9 @@ public class EngineerScreenManager : MonoBehaviour
 
     public void ShowCargoHoldScreen()
     {
+        if (GameState.IsGameOver)
+            return;
+
         cargoHoldScreen.SetActive(true);
         engineRoomScreen.SetActive(false);
 
@@ -39,6 +42,9 @@ public class EngineerScreenManager : MonoBehaviour
 
     public void ShowEngineRoomScreen()
     {
+        if (GameState.IsGameOver)
+            return;
+
         cargoHoldScreen.SetActive(false);
         engineRoomScreen.SetActive(true);
 
@@ -46,6 +52,9 @@ public class EngineerScreenManager : MonoBehaviour
     }
     public void SwitchScreen(EngineerScreen screen)
     {
+        if (GameState.IsGameOver)
+            return;
+
         if (screen == EngineerScreen.CargoHold)
             ShowCargoHoldScreen();
         else

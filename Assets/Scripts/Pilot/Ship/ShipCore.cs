@@ -1,6 +1,7 @@
-using System;
 using Misc;
+using System;
 using Systems;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 
 namespace Pilot.Ship {
@@ -31,6 +32,8 @@ namespace Pilot.Ship {
         [SerializeField] private int hullConsumptionPerHit;
         [SerializeField] private float hitKnockback;
 
+        public static event Action OnShipDied;
+
         protected void Awake() {
             Controls = GetComponent<ShipControls>();
             Stats = GetComponent<ShipStats>();
@@ -56,6 +59,9 @@ namespace Pilot.Ship {
         public void Die() {
             Debug.Log("Player died!");
             gameObject.SetActive(false);
+
+            OnShipDied?.Invoke();
+
             Particles p = Pooling<Particles>.Retrieve(BulletType.Player, 0);
             p.transform.position = transform.position;
             p.transform.rotation = Quaternion.identity;

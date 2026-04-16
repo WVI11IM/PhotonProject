@@ -15,6 +15,9 @@ public class NetworkedUI : NetworkBehaviour
 
     public override void Render()
     {
+        if (GameState.IsGameOver)
+            return;
+
         //Only turn on the UI if it's the owner and it's not already visible
         if (Object != null && Object.HasInputAuthority && !uiVisible)
         {
