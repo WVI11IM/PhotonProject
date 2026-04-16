@@ -11,7 +11,7 @@ using Unity.Properties;
 public partial class LeechConsumeItemAction : LeechAction {
 
     protected override Status OnStart() {
-        Leech.targetItem.LeechConsume();
+        Leech.targetItem.LeechConsume(Leech.transform.position);
         return Status.Success;
     }
 

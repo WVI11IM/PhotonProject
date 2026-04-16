@@ -14,13 +14,12 @@ namespace Enemies.Strider {
 
         private ItemDropper _dropper;
         private Rigidbody2D _rb;
-        private Transform _ship;
         private int _maxHealth;
 
         [SerializeField] private int health;
-        [Header("Movement Config")]
-        [SerializeField] private float rotateForce;
-        [SerializeField] private float rotateForceMax;
+        [SerializeField] private float rotateLerpSpeed;
+        [SerializeField] private float bulletTravelSpeed = 10;
+        [SerializeField] private float bulletLifetime = 1;
 
         private void Awake() {
             _dropper = GetComponent<ItemDropper>();
@@ -34,23 +33,16 @@ namespace Enemies.Strider {
                 return _rb;
             }
         }
-        public Transform Ship {
-            get {
-                if (_ship == null)
-                    _ship = FindAnyObjectByType<ShipControls>().transform;
-                return _ship;
-            }
-        }
         
         public void TorqueToFace(Vector2 target) {
-            float rot = -Mathf.Rad2Deg * Mathf.Atan2(target.y, target.x) + 90;
-            float diff = (transform.rotation * Quaternion.Inverse(Quaternion.Euler(0, 0, 180 - rot))).eulerAngles.z -180;
-            Rb.AddTorque(Mathf.Clamp(diff * -rotateForce, -rotateForceMax, rotateForceMax) * Time.fixedDeltaTime);
+            float rot = Mathf.Rad2Deg * Mathf.Atan2(target.y, target.x) - 90;
+            rot = Mathf.LerpAngle(Rb.rotation, rot, Time.deltaTime * rotateLerpSpeed);
+            Rb.MoveRotation(rot);
         }
 
         public void ShootVolley(int count, float spread) {
             for (var i = 0; i < count; i++) {
-                var b = Pooling<Bullet>.Retrieve(BulletType.Enemy);
+                var b = Pooling<Bullet>.Retrieve(BulletType.Enemy, bulletTravelSpeed, bulletLifetime);
                 b.transform.position = transform.position;
                 b.transform.rotation = transform.rotation *
                                        Quaternion.Euler(0, 0, Random.Range(-spread, spread));

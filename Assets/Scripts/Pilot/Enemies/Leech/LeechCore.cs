@@ -23,6 +23,13 @@ namespace Enemies.Leech {
         [Tooltip("How much random offset to apply to the boost direction")]
         [SerializeField] private float boostSpread;
 
+        [Header("Animation Config")]
+        [SerializeField] private GameObject model;
+        [SerializeField] private float rotationLerpSpeed;
+        [SerializeField] private float spinPerVelocityMult;
+        [SerializeField] private AnimationCurve squashAndStretchPerVelocity;
+        private float lerpTo;
+
         public Rigidbody2D Rb {
             get {
                 if (_rb == null)
@@ -30,22 +37,34 @@ namespace Enemies.Leech {
                 return _rb;
             }
         }
-        public Transform Ship {
-            get {
-                if (_ship == null)
-                    _ship = FindAnyObjectByType<ShipControls>().transform;
-                return _ship;
-            }
-        }
 
         private void Awake() {
             _dropper = GetComponent<ItemDropper>();
             _maxHealth = health;
+            Physics2D.IgnoreCollision(GetComponent<Collider2D>(), ShipCore.Instance.GetComponent<Collider2D>());
         }
 
         // Update is called once per frame
         void Update() {
+            float velMagnitude = Rb.linearVelocity.magnitude;
+            if (transform.parent) {
+                Debug.DrawLine(transform.position, transform.parent.position, Color.orangeRed);
+                Vector2 parentDelta = transform.parent.position - transform.position;
+                lerpTo = Mathf.Atan2(parentDelta.y, parentDelta.x);
+            } else if (Rb.linearVelocity.sqrMagnitude > 1) {
+                Debug.DrawRay(transform.position, _rb.linearVelocity, Color.dodgerBlue);
+                lerpTo = Mathf.Atan2(Rb.linearVelocity.y, Rb.linearVelocity.x);
+            }
+
+            Rb.MoveRotation(transform.parent ? lerpTo * Mathf.Rad2Deg - 90 : Mathf.LerpAngle(Rb.rotation, lerpTo * Mathf.Rad2Deg - 90,
+                Time.deltaTime * rotationLerpSpeed));
             
+            model.transform.Rotate(velMagnitude * spinPerVelocityMult * Time.deltaTime * Vector3.up);
+            Vector3 scale = model.transform.localScale;
+            scale.y = squashAndStretchPerVelocity.Evaluate(velMagnitude);
+            model.transform.localScale = scale;
+            if (targetItem)
+                Debug.DrawLine(transform.position, targetItem.transform.position);
         }
 
         /// <summary>

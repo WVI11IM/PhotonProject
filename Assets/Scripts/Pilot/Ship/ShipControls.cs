@@ -44,9 +44,7 @@ namespace Pilot.Ship {
                 _rb.AddTorque(LogitechUtil.WheelAxis * -steerForce * Time.fixedDeltaTime);
                 LogitechUtil.SetSpringForce(0, 1, 1);
             } else {
-                float diff = (transform.rotation * Quaternion.Inverse(Quaternion.Euler(0, 0, 180 - LogitechUtil.WheelAxisDegrees))).eulerAngles.z -180;
-                _rb.AddTorque(
-                    Mathf.Clamp(diff * acceleration, -max, max) * Time.fixedDeltaTime);
+                _rb.MoveRotation(-LogitechUtil.WheelAxisDegrees);
                 LogitechUtil.SetSpringForce(0, 0, 0);
             }
 
