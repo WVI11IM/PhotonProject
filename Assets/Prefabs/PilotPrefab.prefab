@@ -287,6 +287,7 @@ GameObject:
   - component: {fileID: 5331269088755461212}
   - component: {fileID: 9161155422756882764}
   - component: {fileID: 4661338205796106186}
+  - component: {fileID: 148874680365098350}
   m_Layer: 0
   m_Name: PilotPrefab
   m_TagString: Pilot
@@ -326,13 +327,13 @@ MonoBehaviour:
   SortKey: 303773062
   ObjectInterest: 1
   Flags: 786433
-  NestedObjects:
-  - {fileID: 4074733625772829058}
+  NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 4829935520065865273}
   - {fileID: 5331269088755461212}
   - {fileID: 9161155422756882764}
   - {fileID: 4661338205796106186}
+  - {fileID: 148874680365098350}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &4829935520065865273
 MonoBehaviour:
@@ -375,8 +376,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e88c414029320974ca927046d6095d73, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  uiElements:
-  - {fileID: 269597347219715102}
+  uiElements: []
 --- !u!114 &4661338205796106186
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -399,6 +399,19 @@ MonoBehaviour:
   - {fileID: 4829935520065865273}
   - {fileID: 5331269088755461212}
   - {fileID: 9161155422756882764}
+--- !u!114 &148874680365098350
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1200127729180485959}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82147d3c217865d478bfbcbc6ec85306, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShipStatsNetwork
+  stats: {fileID: 32410527313200319}
 --- !u!1 &1461209213538709431
 GameObject:
   m_ObjectHideFlags: 0
@@ -2029,6 +2042,10 @@ PrefabInstance:
       value: 174850327
       objectReference: {fileID: 0}
     - target: {fileID: 2296765658545756482, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2296765658545756482, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
       propertyPath: NetworkedBehaviours.Array.size
       value: 2
       objectReference: {fileID: 0}
@@ -2055,6 +2072,14 @@ PrefabInstance:
     - target: {fileID: 2819457488143021183, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
       propertyPath: <Hull>k__BackingField.<RateReplenish>k__BackingField
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6729760233153121825, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6769905223811690671, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6769905223811690671, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
       propertyPath: audioEject
@@ -2116,22 +2141,25 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2296765658545756482, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+    - {fileID: 6769905223811690671, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+    - {fileID: 6729760233153121825, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
---- !u!114 &4074733625772829058 stripped
+--- !u!114 &32410527313200319 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2296765658545756482, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
+  m_CorrespondingSourceObject: {fileID: 2819457488143021183, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}
   m_PrefabInstance: {fileID: 2833780760071696576}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Script: {fileID: 11500000, guid: 4fe0091937b1d4571a5de76ab1172ac1, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  m_EditorClassIdentifier: Assembly-CSharp::Pilot.ShipStats
 --- !u!4 &6231702017714325425 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8154030327402755953, guid: e26b7a89780c146fbaa423656b0300f5, type: 3}

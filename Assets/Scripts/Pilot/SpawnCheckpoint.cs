@@ -23,11 +23,20 @@ namespace Pilot {
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start() {
-            if (Camera.main != null) _target = Camera.main.transform;
+            TryFindCamera();
         }
 
         // Update is called once per frame
         void Update() {
+
+            if (_target == null)
+            {
+                Camera cam = Camera.main;
+                _target = cam != null ? cam.transform : null;
+                if (_target == null)
+                    return;
+            }
+
             for (int i = 0; i < transform.childCount; i++)
                 Debug.DrawLine(transform.position, transform.GetChild(i).position, Color.brown);
             if (!Application.isPlaying)
@@ -69,6 +78,12 @@ namespace Pilot {
             return child;
         }
 
+
+        private void TryFindCamera()
+        {
+            Camera cam = Camera.main;
+            _target = cam != null ? cam.transform : null;
+        }
     }
 
 }

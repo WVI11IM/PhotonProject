@@ -17,6 +17,8 @@ public class PlayerNetwork : NetworkBehaviour
 
     private ChangeDetector _changeDetector;
 
+    public static PlayerNetwork Local;
+
     public override void Spawned()
     {
         base.Spawned();
@@ -26,6 +28,8 @@ public class PlayerNetwork : NetworkBehaviour
 
         if (Object.HasInputAuthority)
         {
+            Local = this;
+
             playerName = PlayerInfo.Name;
             playerRole = PlayerInfo.Role;
         }
